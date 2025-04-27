@@ -1,0 +1,142 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+
+# 静态资源收集目录
+staticfiles/
+static/admin/
+static/rest_framework/
+
+# 如果使用SQLite作为开发数据库，但不想将其纳入版本控制，取消下面的注释
+# *.sqlite3
+# *.db
+
+# Python #
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Python 虚拟环境 #
+venv/
+env/
+ENV/
+.env
+.venv
+env.bak/
+venv.bak/
+
+# PyCharm #
+.idea/
+*.iws
+*.iml
+*.ipr
+.idea_modules/
+
+# VS Code #
+.vscode/
+*.code-workspace
+.history
+
+# Jupyter Notebook #
+.ipynb_checkpoints
+
+# Coverage #
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Celery #
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath #
+*.sage.py
+
+# Environments #
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 日志文件 #
+logs/
+*.log
+
+# Node modules (如果项目前端使用了Node.js) #
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Windows #
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS #
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux #
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Backup files #
+*.bak
+*.swp
+*.tmp
+
+# migrations目录一般需要保留，但可能希望忽略初始迁移 #
+# */migrations/00*.py
+
+# 其他项目特定忽略项 #
+secrets.json
+.env.secret
+
+# 虚拟环境
+.venv
