@@ -4,8 +4,8 @@
 > 项目目的：搭建一个功能完善、易扩展的博客系统，支持用户认证、RESTful API 接口以及模板渲染。
 > 项目状态：开发中
 > 项目团队：
-> * 开发者 A：负责用户管理模块和权限模块
-> * 开发者 B：负责文章管理模块和评论系统
+> * 开发者 A：负责用户管理模块和权限模块 (分支:710)
+> * 开发者 B：负责文章管理模块和评论系统 (分支:zjy)
 > > 技术栈：Django 4.2.20, Python >=3.12, MySQL 8.0, djangorestframework 3.14.x, djangorestframework-simplejwt, Bootstrap 5
 
 ## 依赖
