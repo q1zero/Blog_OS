@@ -1,0 +1,95 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Blog_OS - 博客平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="mb-4">
+            <h1 class="display-4">欢迎来到 Blog_OS</h1>
+            <p class="lead">这是一个基于Django开发的博客平台，分享知识与见解。</p>
+            <hr class="my-4">
+        </div>
+        
+        <h2 class="mb-4">最新文章</h2>
+        
+        {% if latest_articles %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for article in latest_articles %}
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="card-title h5">
+                                    <a href="{{ article.get_absolute_url }}" class="text-decoration-none text-dark">{{ article.title }}</a>
+                                </h3>
+                                <p class="card-text text-muted">
+                                    <small>
+                                        {{ article.published_at|date:"Y年m月d日" }}
+                                        {% if article.category %}
+                                            | <a href="{% url 'articles:article_list_by_category' article.category.slug %}" class="text-decoration-none">{{ article.category.name }}</a>
+                                        {% endif %}
+                                    </small>
+                                </p>
+                                <div class="mb-2">
+                                    {% for tag in article.tags.all %}
+                                        <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                                    {% endfor %}
+                                </div>
+                                <p class="card-text">{{ article.content|truncatewords:15 }}</p>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0">
+                                <a href="{{ article.get_absolute_url }}" class="btn btn-sm btn-outline-primary">阅读全文</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'articles:article_list' %}" class="btn btn-primary">查看所有文章</a>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                暂无文章，请稍后再来访问。
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- 边栏内容 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">分类</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for category in categories %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'articles:article_list_by_category' category.slug %}" class="text-decoration-none">{{ category.name }}</a>
+                            <span class="badge bg-primary rounded-pill">{{ category.articles.count }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">暂无分类</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">标签云</h5>
+            </div>
+            <div class="card-body">
+                {% for tag in tags %}
+                    <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="btn btn-sm btn-outline-secondary m-1">
+                        {{ tag.name }} <span class="badge bg-secondary">{{ tag.articles.count }}</span>
+                    </a>
+                {% empty %}
+                    <p>暂无标签</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

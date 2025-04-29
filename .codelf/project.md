@@ -41,7 +41,7 @@ root
         - users      // 用户管理模块
         - articles   // 文章管理模块
             - models.py      // 文章、分类和标签模型
-            - views.py       // 文章列表和详情视图
+            - views.py       // 文章列表、详情和首页视图
             - urls.py        // 文章URL配置
             - admin.py       // 管理后台配置
         - comments   // 评论系统模块
@@ -52,6 +52,7 @@ root
         - articles   // 文章相关模板
             - list.html      // 文章列表页
             - detail.html    // 文章详情页
+            - home.html      // 首页模板
     - static         // 静态文件目录
         - css        // 样式文件目录
             - style.css      // 主要样式文件
@@ -82,12 +83,14 @@ root
 
 **主要功能：**
 
-1. 文章列表展示（支持分类和标签过滤）
-2. 文章详情展示（支持Markdown渲染和代码高亮）
-3. 文章管理后台（支持文章、分类和标签的CRUD操作）
+1. 网站首页展示（按发布时间展示最新的文章）
+2. 文章列表展示（支持分类和标签过滤）
+3. 文章详情展示（支持Markdown渲染和代码高亮）
+4. 文章管理后台（支持文章、分类和标签的CRUD操作）
 
 **URL结构：**
 
+- `/` - 首页，显示最新文章
 - `/articles/` - 文章列表
 - `/articles/<slug>/` - 文章详情
 - `/articles/category/<slug>/` - 按分类过滤文章
