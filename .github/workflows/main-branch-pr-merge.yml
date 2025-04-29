@@ -158,67 +158,33 @@ jobs:
           cd blog
           timeout 10s python manage.py runserver > /dev/null 2>&1 || echo "服务已启动并停止"
   
-  auto-approve-and-merge:
-    name: 自动审批与合并
+  auto-merge:
+    name: 自动合并
     needs: [lint-and-test, basic-integration]
     if: success()
     runs-on: ubuntu-latest
     
     steps:
-      - name: 审查PR
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            
-            // 添加详细检查结果评论
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `## Main分支PR合并检查报告 ✅
-              
-              ### 检查项目
-              - ✅ PR格式验证通过
-              - ✅ 代码风格检查已执行
-              - ✅ Django项目检查通过
-              - ✅ 基本集成测试通过
-              
-              该PR已通过基本自动化测试，项目可以正常运行。
-              
-              请管理员审阅并合并。`
-            });
-            
-            // 添加标签
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              labels: ['ready-for-merge', 'ci-passed']
-            });
+      - name: 检出代码
+        uses: actions/checkout@v3
       
-      - name: 等待批准
-        id: wait-for-approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ secrets.GITHUB_TOKEN }}
-          approvers: ${{ github.repository_owner }}
-          minimum-approvals: 1
-          issue-title: "批准合并PR #${{ github.event.pull_request.number }} 到 main 分支"
-          issue-body: "该PR已通过基本自动化测试，请批准合并到main分支。\n\nPR: ${{ github.event.pull_request.html_url }}"
-          exclude-workflow-initiator-as-approver: false
+      - name: 输出测试结果摘要
+        run: |
+          echo "============== 测试结果摘要 =============="
+          echo "✅ PR格式验证通过"
+          echo "✅ 代码风格检查已执行"
+          echo "✅ Django项目检查通过"
+          echo "✅ 基本集成测试通过"
+          echo "==========================================="
+          echo "所有检查已通过，PR可以合并到main分支"
       
-      - name: 自动合并PR
-        if: steps.wait-for-approval.outputs.approved == 'true'
+      - name: 合并PR
         uses: pascalgn/automerge-action@v0.15.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_LABELS: "ready-for-merge,ci-passed"
           MERGE_METHOD: "squash"
-          MERGE_COMMIT_MESSAGE: "PR #${{ github.event.pull_request.number }} 已合并到main分支: ${{ github.event.pull_request.title }}"
+          MERGE_COMMIT_MESSAGE: "自动合并PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
           MERGE_FORKS: "false"
           MERGE_RETRIES: "6"
           MERGE_RETRY_SLEEP: "10000"
-          UPDATE_LABELS: ""
           UPDATE_METHOD: "rebase" 
