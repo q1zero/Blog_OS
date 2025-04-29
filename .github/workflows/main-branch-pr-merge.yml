@@ -158,33 +158,25 @@ jobs:
           cd blog
           timeout 10s python manage.py runserver > /dev/null 2>&1 || echo "服务已启动并停止"
   
-  auto-merge:
-    name: 自动合并
+  final-report:
+    name: 测试结果报告
     needs: [lint-and-test, basic-integration]
     if: success()
     runs-on: ubuntu-latest
     
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v3
-      
-      - name: 输出测试结果摘要
+      - name: 显示测试通过通知
         run: |
-          echo "============== 测试结果摘要 =============="
+          echo "=============================================="
+          echo "            📋 测试结果摘要 📋              "
+          echo "=============================================="
           echo "✅ PR格式验证通过"
           echo "✅ 代码风格检查已执行"
           echo "✅ Django项目检查通过"
           echo "✅ 基本集成测试通过"
-          echo "==========================================="
-          echo "所有检查已通过，PR可以合并到main分支"
-      
-      - name: 合并PR
-        uses: pascalgn/automerge-action@v0.15.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_METHOD: "squash"
-          MERGE_COMMIT_MESSAGE: "自动合并PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
-          MERGE_FORKS: "false"
-          MERGE_RETRIES: "6"
-          MERGE_RETRY_SLEEP: "10000"
-          UPDATE_METHOD: "rebase" 
+          echo "=============================================="
+          echo "🎉 恭喜！所有测试已通过 🎉"
+          echo "请管理员手动合并此PR到main分支"
+          echo "=============================================="
+          PR_URL="https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
+          echo "PR地址: $PR_URL" 
