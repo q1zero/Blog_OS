@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # 自定义应用
+    "blog.apps.users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
@@ -129,3 +132,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# 自定义用户模型
+AUTH_USER_MODEL = "users.User"
+
+# 登录和登出重定向URL
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+# 媒体文件配置
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
