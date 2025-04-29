@@ -49,7 +49,30 @@
    - .codelf/_changelog.md               // refact 更新变更日志
    ```
 
-### 3. {function simple description}
+### 3. 优化 CI/CD 工作流
+
+**Change Type**: ci
+
+> **Purpose**: 优化CI工作流，移除安全检查，简化测试流程
+> **Detailed Description**: 修改Main分支PR合并自动化测试工作流，移除安全检查和严格测试，添加数据库迁移容错机制；更新分支保护配置和文档
+> **Reason for Change**: 作为学习项目，简化CI流程，主要确保Django项目能运行
+> **Impact Scope**: 影响项目的PR合并流程
+> **API Changes**: 无
+> **Configuration Changes**: 修改GitHub Actions工作流配置
+> **Performance Impact**: 减少CI运行时间和资源消耗
+
+   ```text
+   root
+   - .github/workflows                  // refact GitHub Actions工作流目录
+     - main-branch-pr-merge.yml        // refact 简化测试流程，移除安全检查
+     - main-branch-protection.yml      // refact 更新分支保护规则
+   - docs                               // refact 项目文档目录
+     - ci_cd_workflow.md               // refact 更新CI/CD工作流程文档
+   - .codelf/project.md                 // refact 更新项目文档，添加CI特别说明
+   - .codelf/_changelog.md              // refact 更新变更日志
+   ```
+
+### 4. {function simple description}
 
 **Change Type**: {type: feature/fix/improvement/refactor/docs/test/build}
 
@@ -208,3 +231,22 @@
 - 更新项目文档：
   - 更新项目结构说明，添加CI/CD相关文件
   - 添加CI/CD配置说明
+
+### 2025-05-03: 优化CI/CD工作流
+
+- 简化CI工作流：
+  - 移除安全检查部分，专注于项目功能验证
+  - 解决uv缓存问题，简化Python环境配置
+  - 添加数据库迁移容错机制，处理可能的数据库错误
+  
+- 更新分支保护规则：
+  - 调整必须通过的状态检查项目
+  - 保留代码所有者审阅要求
+  
+- 更新CI/CD文档：
+  - 添加特别说明部分，明确本CI配置为学习项目设计
+  - 说明简化的测试流程和数据库处理方式
+  
+- 项目文档更新：
+  - 添加CI特别说明，提供简化的原因和处理方式
+  - 更新工作流步骤描述

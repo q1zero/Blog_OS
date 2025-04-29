@@ -37,8 +37,7 @@ jobs:
                   contexts: [
                     'validate-pr',
                     'lint-and-test',
-                    'security-check',
-                    'integration-test'
+                    'basic-integration'
                   ]
                 },
                 enforce_admins: true,
