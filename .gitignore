@@ -7,8 +7,6 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media
-migrations/
-
 # 静态资源收集目录
 staticfiles/
 static/admin/
