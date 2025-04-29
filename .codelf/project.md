@@ -174,3 +174,8 @@ root
 * 代码风格检查不会阻止流程
 * 设计了数据库迁移容错机制
 * 主要确保Django项目能够正常运行
+* 智能依赖安装：
+  * 自动检测pyproject.toml、requirements.txt等不同依赖文件
+  * 针对不同情况采用合适的安装方式
+  * 当找不到依赖文件时，直接安装基本依赖
+  * 确保Django和MySQLClient正确安装
