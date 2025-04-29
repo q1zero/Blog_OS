@@ -55,19 +55,21 @@ jobs:
       - name: 安装依赖
         run: |
           pip install --upgrade pip
-          pip install uv
           
-          # 检查是否存在pyproject.toml或requirements.txt
+          # 使用pip直接安装依赖
           if [ -f "pyproject.toml" ]; then
             echo "使用pyproject.toml安装依赖"
-            uv pip install -e .
+            pip install -e .
           elif [ -f "requirements.txt" ]; then
             echo "使用requirements.txt安装依赖"
-            uv pip install -r requirements.txt
+            pip install -r requirements.txt
           else
             echo "未找到依赖文件，直接安装Django和其他必要依赖"
-            uv pip install django djangorestframework djangorestframework-simplejwt markdown
+            pip install django djangorestframework djangorestframework-simplejwt markdown
           fi
+          
+          # 安装代码检查工具
+          pip install black isort flake8
           
           # 确认Django已安装
           python -c "import django; print(f'Django版本: {django.__version__}')"
@@ -76,7 +78,6 @@ jobs:
         id: lint
         continue-on-error: true
         run: |
-          uv pip install black isort flake8
           flake8 blog --count --select=E9,F63,F7,F82 --max-complexity=10 --max-line-length=127 --statistics || true
           black --check blog || true
           isort --check-only --profile black blog || true
@@ -115,22 +116,21 @@ jobs:
       - name: 安装依赖
         run: |
           pip install --upgrade pip
-          pip install uv
           
-          # 检查是否存在pyproject.toml或requirements.txt
+          # 使用pip直接安装依赖
           if [ -f "pyproject.toml" ]; then
             echo "使用pyproject.toml安装依赖"
-            uv pip install -e .
+            pip install -e .
           elif [ -f "requirements.txt" ]; then
             echo "使用requirements.txt安装依赖"
-            uv pip install -r requirements.txt
+            pip install -r requirements.txt
           else
             echo "未找到依赖文件，直接安装Django和其他必要依赖"
-            uv pip install django djangorestframework djangorestframework-simplejwt markdown mysqlclient
+            pip install django djangorestframework djangorestframework-simplejwt markdown mysqlclient
           fi
           
           # 安装MySQL客户端
-          uv pip install mysqlclient
+          pip install mysqlclient
           
           # 确认Django已安装
           python -c "import django; print(f'Django版本: {django.__version__}')"
