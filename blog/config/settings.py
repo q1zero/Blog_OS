@@ -84,9 +84,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "blog_os",
-        "USER": "root",
-        "PASSWORD": "",  # 使用空密码登录
-        "HOST": "localhost",
+        "USER": "ggtmy31755",
+        "PASSWORD": "123456789",  # 使用空密码登录
+        "HOST": "db4free.net",
         "PORT": "3306",
         "OPTIONS": {
             "charset": "utf8mb4",
