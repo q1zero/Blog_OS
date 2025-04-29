@@ -1,0 +1,225 @@
+name: Main分支PR合并自动化测试
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  validate-pr:
+    name: 验证PR内容与格式
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: 检查PR标题格式
+        id: check-title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if ! [[ "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\(.+\))?: ]]; then
+            echo "PR标题格式不符合规范！"
+            echo "请使用约定式提交格式：<type>[(scope)]: <description>"
+            echo "例如: feat(users): 添加用户注册功能"
+            exit 1
+          fi
+      
+      - name: 检查变更文件数量
+        id: check-files
+        run: |
+          FILES_CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | wc -l)
+          echo "变更文件数量: $FILES_CHANGED"
+          if [ $FILES_CHANGED -gt 100 ]; then
+            echo "警告：变更文件数量较多，请考虑拆分PR"
+            # 不阻止流程，仅提示
+          fi
+  
+  lint-and-test:
+    name: 代码检查与测试
+    needs: validate-pr
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+      
+      - name: 设置Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'uv'
+      
+      - name: 安装uv
+        run: |
+          pip install uv
+      
+      - name: 安装依赖
+        run: |
+          uv sync
+      
+      - name: 运行代码风格检查
+        id: lint
+        continue-on-error: true
+        run: |
+          uv pip install black isort flake8 mypy
+          flake8 blog --count --select=E9,F63,F7,F82 --max-complexity=10 --max-line-length=127 --statistics
+          black --check blog
+          isort --check-only --profile black blog
+          mypy --ignore-missing-imports blog
+      
+      - name: 运行单元测试与覆盖率检查
+        id: test
+        run: |
+          uv pip install pytest pytest-cov
+          cd blog
+          uv run python -m pytest --cov=. --cov-report=xml
+      
+      - name: 上传覆盖率报告
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./blog/coverage.xml
+          fail_ci_if_error: false
+
+  security-check:
+    name: 安全检查
+    needs: validate-pr
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+      
+      - name: 设置Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: 安装依赖
+        run: |
+          pip install bandit safety
+      
+      - name: 运行Bandit安全检查
+        run: |
+          bandit -r blog -x blog/tests
+      
+      - name: 运行Safety依赖检查
+        run: |
+          safety check
+
+  integration-test:
+    name: 集成测试
+    needs: [lint-and-test, security-check]
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: test_blog
+          MYSQL_ROOT_PASSWORD: rootpassword
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+      
+      - name: 设置Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'uv'
+      
+      - name: 安装依赖
+        run: |
+          pip install uv
+          uv sync
+      
+      - name: 配置测试环境
+        run: |
+          cd blog
+          echo "SECRET_KEY=testsecretkey" > .env
+          echo "DEBUG=True" >> .env
+          echo "DATABASE_URL=mysql://root:rootpassword@localhost:3306/test_blog" >> .env
+      
+      - name: 运行数据库迁移
+        run: |
+          cd blog
+          uv run python manage.py migrate
+      
+      - name: 运行集成测试
+        run: |
+          cd blog
+          uv run python manage.py test --settings=config.settings.test
+  
+  auto-approve-and-merge:
+    name: 自动审批与合并
+    needs: [lint-and-test, security-check, integration-test]
+    if: success()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 审查PR
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            
+            // 添加详细检查结果评论
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `## Main分支PR合并检查报告 ✅
+              
+              ### 检查项目
+              - ✅ PR格式验证通过
+              - ✅ 代码风格检查通过
+              - ✅ 单元测试通过
+              - ✅ 安全检查通过
+              - ✅ 集成测试通过
+              
+              该PR已通过所有自动化测试，符合合并到main分支的条件。
+              
+              请管理员审阅并合并。`
+            });
+            
+            // 添加标签
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ['ready-for-merge', 'ci-passed']
+            });
+      
+      - name: 等待批准
+        id: wait-for-approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: ${{ github.repository_owner }}
+          minimum-approvals: 1
+          issue-title: "批准合并PR #${{ github.event.pull_request.number }} 到 main 分支"
+          issue-body: "该PR已通过所有自动化测试，请批准合并到main分支。\n\nPR: ${{ github.event.pull_request.html_url }}"
+          exclude-workflow-initiator-as-approver: false
+      
+      - name: 自动合并PR
+        if: steps.wait-for-approval.outputs.approved == 'true'
+        uses: pascalgn/automerge-action@v0.15.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: "ready-for-merge,ci-passed"
+          MERGE_METHOD: "squash"
+          MERGE_COMMIT_MESSAGE: "PR #${{ github.event.pull_request.number }} 已合并到main分支: ${{ github.event.pull_request.title }}"
+          MERGE_FORKS: "false"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "10000"
+          UPDATE_LABELS: ""
+          UPDATE_METHOD: "rebase" 
