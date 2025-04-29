@@ -96,3 +96,25 @@ def article_detail(request, article_slug):
             "related_articles": related_articles,
         },
     )
+
+
+def home(request):
+    """首页视图，展示最新发布的文章"""
+    # 获取已发布且公开的文章，按发布时间排序
+    latest_articles = Article.objects.filter(
+        status="published", visibility="public"
+    ).order_by("-published_at")[:8]  # 显示最新的8篇文章
+
+    # 获取所有分类和标签，用于侧边栏
+    categories = Category.objects.all()
+    tags = Tag.objects.all()
+
+    return render(
+        request,
+        "articles/home.html",
+        {
+            "latest_articles": latest_articles,
+            "categories": categories,
+            "tags": tags,
+        },
+    )
