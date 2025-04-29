@@ -33,6 +33,14 @@ root
 - .gitignore         // Git 忽略文件
 - .python-version    // Python 版本控制文件
 - .venv              // 虚拟环境目录
+- .github            // GitHub配置目录
+    - workflows      // GitHub Actions工作流
+        - pr-auto-review.yml        // PR自动审阅与合并
+        - main-branch-pr-merge.yml  // Main分支PR合并自动化测试
+        - main-branch-protection.yml // Main分支保护配置
+    - PULL_REQUEST_TEMPLATE // PR模板目录
+        - main_branch_pr.md // Main分支PR模板
+    - pull_request_template.md // 默认PR模板
 - .codelf            // 项目文档目录
     - attention.md
     - project.md
@@ -58,6 +66,8 @@ root
     - static         // 静态文件目录
         - css        // 样式文件目录
             - style.css      // 主要样式文件
+- docs               // 项目文档目录
+    - ci_cd_workflow.md // CI/CD工作流程文档
 - plan.md            // 项目开发计划
 - pyproject.toml     // 依赖和项目配置
 - README.md          // 项目说明文档
@@ -123,3 +133,49 @@ root
 * `/articles/<slug>/` - 文章详情
 * `/articles/category/<slug>/` - 按分类过滤文章
 * `/articles/tag/<slug>/` - 按标签过滤文章
+
+## CI/CD 配置
+
+项目使用GitHub Actions实现持续集成和部署，包含以下工作流程：
+
+### PR自动审阅与合并工作流
+
+* **文件**: `.github/workflows/pr-auto-review.yml`
+* **用途**: 针对一般的PR进行代码检查、测试和自动审阅
+* **触发条件**: PR创建、更新、重新打开、标记和审阅提交
+
+### Main分支PR合并自动化测试工作流
+
+* **文件**: `.github/workflows/main-branch-pr-merge.yml`
+* **用途**: 专门针对合并到main分支的PR进行基本测试和审批
+* **触发条件**: 针对main分支的PR创建、更新和重新打开
+* **主要步骤**:
+  1. 验证PR内容与格式
+  2. 代码检查与基本测试
+  3. 基本集成测试（确保Django项目能启动）
+  4. 自动审批与合并
+
+### Main分支保护配置工作流
+
+* **文件**: `.github/workflows/main-branch-protection.yml`
+* **用途**: 自动配置和维护main分支的保护规则
+* **触发条件**: 手动触发或当工作流文件更新时
+* **主要功能**:
+  * 设置分支保护规则
+  * 创建CODEOWNERS文件（如果不存在）
+
+详细的CI/CD流程说明请参考 `docs/ci_cd_workflow.md`
+
+### CI特别说明
+
+作为学习项目，本CI配置简化了部分测试流程：
+
+* 不包含严格的安全检查
+* 代码风格检查不会阻止流程
+* 设计了数据库迁移容错机制
+* 主要确保Django项目能够正常运行
+* 智能依赖安装：
+  * 自动检测pyproject.toml、requirements.txt等不同依赖文件
+  * 针对不同情况采用合适的安装方式
+  * 当找不到依赖文件时，直接安装基本依赖
+  * 确保Django和MySQLClient正确安装
