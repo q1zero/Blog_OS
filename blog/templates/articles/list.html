@@ -1,0 +1,133 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if category %}{{ category.name }}{% elif tag %}标签: {{ tag.name }}{% else %}所有文章{% endif %} - Blog_OS
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1 class="mb-4">
+            {% if category %}
+                分类: {{ category.name }}
+            {% elif tag %}
+                标签: {{ tag.name }}
+            {% else %}
+                文章列表
+            {% endif %}
+        </h1>
+        
+        {% if articles %}
+            {% for article in articles %}
+                <article class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <a href="{{ article.get_absolute_url }}" class="text-decoration-none text-dark">{{ article.title }}</a>
+                        </h2>
+                        <p class="card-text text-muted">
+                            <small>
+                                由 {{ article.author.username }} 发布于 {{ article.published_at|date:"Y年m月d日" }}
+                                {% if article.category %}
+                                    | 分类: <a href="{% url 'articles:article_list_by_category' article.category.slug %}" class="text-decoration-none">{{ article.category.name }}</a>
+                                {% endif %}
+                            </small>
+                        </p>
+                        <div class="mb-2">
+                            {% for tag in article.tags.all %}
+                                <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                            {% endfor %}
+                        </div>
+                        <p class="card-text">{{ article.content|truncatewords:30 }}</p>
+                        <a href="{{ article.get_absolute_url }}" class="btn btn-primary">阅读全文</a>
+                    </div>
+                </article>
+            {% endfor %}
+            
+            <!-- 分页 -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if articles.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ articles.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in articles.paginator.page_range %}
+                        {% if articles.number == num %}
+                            <li class="page-item active">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% elif num > articles.number|add:'-3' and num < articles.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if articles.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ articles.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% else %}
+            <div class="alert alert-info">
+                暂无文章
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">分类</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for category in categories %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'articles:article_list_by_category' category.slug %}" class="text-decoration-none">{{ category.name }}</a>
+                            <span class="badge bg-primary rounded-pill">{{ category.articles.count }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">暂无分类</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">标签云</h5>
+            </div>
+            <div class="card-body">
+                {% for tag in tags %}
+                    <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="btn btn-sm btn-outline-secondary m-1">
+                        {{ tag.name }} <span class="badge bg-secondary">{{ tag.articles.count }}</span>
+                    </a>
+                {% empty %}
+                    <p>暂无标签</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

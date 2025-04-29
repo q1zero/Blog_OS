@@ -1,0 +1,105 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ article.title }} - Blog_OS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+<style>
+    .article-content img {
+        max-width: 100%;
+        height: auto;
+    }
+    .article-toc {
+        position: sticky;
+        top: 20px;
+    }
+    .article-toc ul {
+        padding-left: 20px;
+    }
+    .article-content pre {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    .article-content code {
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .article-meta {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <article class="article">
+            <header>
+                <h1 class="mb-3">{{ article.title }}</h1>
+                <div class="article-meta text-muted">
+                    <span>作者: {{ article.author.username }}</span>
+                    <span class="mx-2">|</span>
+                    <span>发布时间: {{ article.published_at|date:"Y年m月d日 H:i" }}</span>
+                    {% if article.category %}
+                    <span class="mx-2">|</span>
+                    <span>分类: <a href="{% url 'articles:article_list_by_category' article.category.slug %}" class="text-decoration-none">{{ article.category.name }}</a></span>
+                    {% endif %}
+                </div>
+                {% if article.tags.exists %}
+                <div class="article-tags mb-3">
+                    {% for tag in article.tags.all %}
+                    <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </header>
+            
+            <div class="article-content">
+                {{ article.content|safe }}
+            </div>
+        </article>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card article-toc mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">目录</h5>
+            </div>
+            <div class="card-body">
+                {{ article.toc|safe }}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">相关文章</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for related_article in related_articles %}
+                    <li class="list-group-item">
+                        <a href="{{ related_article.get_absolute_url }}" class="text-decoration-none">{{ related_article.title }}</a>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item">暂无相关文章</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+        });
+    });
+</script>
+{% endblock %} 
