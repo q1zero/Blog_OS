@@ -1,6 +1,7 @@
 ## {datetime: YYYY-MM-DD HH:mm:ss}
 
 ### 2025-04-27 16:33:00
+
 ### 1. 初始化 .codelf 目录并更新 attention.md 和 project.md
 
 **Change Type**: docs
@@ -13,7 +14,7 @@
 > **Configuration Changes**: 无
 > **Performance Impact**: 无
 
-   ```
+   ```text
    root
    - .codelf               // add 项目文档目录
    - .codelf/attention.md  // refact 更新框架语言最佳实践与可重用组件结构
@@ -33,7 +34,7 @@
 > **Configuration Changes**: {changes to environment variables, config files, etc.}
 > **Performance Impact**: {impact of the change on system performance}
 
-   ```
+   ```text
    root
    - pkg    // {type: add/del/refact/-} {The role of a folder}
     - utils // {type: add/del/refact} {The function of the file}
@@ -52,7 +53,7 @@
 > **Configuration Changes**: {changes to environment variables, config files, etc.}
 > **Performance Impact**: {impact of the change on system performance}
 
-   ```
+   ```text
    root
    - pkg    // {type: add/del/refact/-} {The role of a folder}
     - utils // {type: add/del/refact} {The function of the file}
@@ -111,3 +112,68 @@
   - 更新项目结构说明
   - 添加首页功能描述
   - 更新URL结构文档
+
+### 2025-04-29: 实现用户管理模块功能（开发者A）
+
+- 实现自定义用户模型：
+  - 继承 AbstractUser，添加自定义字段
+  - 配置 AUTH_USER_MODEL 设置
+  - 实现用户角色逻辑
+
+- 添加用户认证功能：
+  - 实现用户注册视图和模板
+  - 实现用户登录/登出功能
+  - 集成 djangorestframework-simplejwt 实现 JWT 认证
+
+- 配置 Django Admin 界面：
+  - 为自定义用户模型设置管理界面
+  - 添加用户管理功能（创建、编辑、删除用户）
+  - 添加过滤和搜索功能
+
+- 定义用户相关URL：
+  - 设置用户注册、登录、登出URL
+  - 配置用户个人资料URL
+  - 集成到项目主URL配置
+  
+- 代码实现详情：
+
+  ```text
+  apps/users/models.py     // 自定义User模型定义
+  apps/users/forms.py      // 用户注册和登录表单
+  apps/users/views.py      // 用户注册、登录、登出视图
+  apps/users/urls.py       // 用户相关URL配置
+  apps/users/admin.py      // 用户管理后台配置
+  templates/users/         // 用户相关模板（注册、登录等）
+  config/settings.py       // AUTH_USER_MODEL和认证配置
+  config/urls.py           // 主URL配置更新
+  ```
+
+### 2025-04-29 17:33:36
+
+### 2. 实现用户管理模块功能
+
+**Change Type**: feature
+
+> **Purpose**: 实现博客系统的用户认证和管理功能
+> **Detailed Description**: 创建自定义用户模型继承AbstractUser；实现用户注册、登录、登出功能；集成JWT认证；配置Django Admin后台管理；设置用户相关URL路由
+> **Reason for Change**: 为博客系统提供必要的用户管理基础设施
+> **Impact Scope**: 影响文章模块中的作者关联
+> **API Changes**: 添加用户注册、登录API端点
+> **Configuration Changes**: 配置AUTH_USER_MODEL和JWT设置
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/apps/users             // add 用户管理模块
+     - models.py                 // add 自定义User模型
+     - forms.py                  // add 用户表单
+     - views.py                  // add 用户视图
+     - urls.py                   // add 用户URL配置
+     - admin.py                  // add 用户管理后台
+   - blog/templates/users        // add 用户模板目录
+     - register.html            // add 注册模板
+     - login.html               // add 登录模板
+     - profile.html             // add 个人资料模板
+   - blog/config/settings.py     // refact 更新AUTH_USER_MODEL和JWT配置
+   - blog/config/urls.py         // refact 更新主URL配置
+   ```
