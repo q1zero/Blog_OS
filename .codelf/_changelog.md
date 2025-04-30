@@ -1,6 +1,32 @@
 ## {datetime: YYYY-MM-DD HH:mm:ss}
 
+### 2025-04-30 14:45:00
+
+### 3. 修复文章预览中Markdown格式符号显示问题
+
+**Change Type**: improvement
+
+> **Purpose**: 优化文章预览效果，去除Markdown格式符号
+> **Detailed Description**: 创建自定义Django模板过滤器`plain_text_preview`，将Markdown文本转换为纯文本预览；修改文章列表和首页模板，使用该过滤器替代原有的truncatewords过滤器
+> **Reason for Change**: 原先的truncatewords过滤器无法处理Markdown格式符号，导致文章预览显示原始Markdown文本
+> **Impact Scope**: 影响文章列表和首页的文章预览显示
+> **API Changes**: 无
+> **Configuration Changes**: 将utils应用添加到INSTALLED_APPS配置
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/utils/templatetags      // add 自定义模板标签和过滤器目录
+     - __init__.py               // add 包初始化文件
+     - markdown_filters.py       // add Markdown文本处理过滤器
+   - blog/templates/articles     // refact 修改文章模板
+     - home.html                 // refact 更新首页模板使用自定义过滤器
+     - list.html                 // refact 更新文章列表模板使用自定义过滤器
+   - blog/config/settings.py     // refact 添加utils应用到INSTALLED_APPS
+   ```
+
 ### 2025-04-27 16:33:00
+
 ### 1. 初始化 .codelf 目录并更新 attention.md 和 project.md
 
 **Change Type**: docs
@@ -13,7 +39,7 @@
 > **Configuration Changes**: 无
 > **Performance Impact**: 无
 
-   ```
+   ```text
    root
    - .codelf               // add 项目文档目录
    - .codelf/attention.md  // refact 更新框架语言最佳实践与可重用组件结构
@@ -21,8 +47,6 @@
    - .codelf/_changelog.md // add 模板文件
    ```
 
-### 2. {function simple description}
-
 **Change Type**: {type: feature/fix/improvement/refactor/docs/test/build}
 
 > **Purpose**: {function purpose}
@@ -33,26 +57,7 @@
 > **Configuration Changes**: {changes to environment variables, config files, etc.}
 > **Performance Impact**: {impact of the change on system performance}
 
-   ```
-   root
-   - pkg    // {type: add/del/refact/-} {The role of a folder}
-    - utils // {type: add/del/refact} {The function of the file}
-   - xxx    // {type: add/del/refact} {The function of the file}
-   ```
-
-### 3. {function simple description}
-
-**Change Type**: {type: feature/fix/improvement/refactor/docs/test/build}
-
-> **Purpose**: {function purpose}
-> **Detailed Description**: {function detailed description}
-> **Reason for Change**: {why this change is needed}
-> **Impact Scope**: {other modules or functions that may be affected by this change}
-> **API Changes**: {if there are API changes, detail the old and new APIs}
-> **Configuration Changes**: {changes to environment variables, config files, etc.}
-> **Performance Impact**: {impact of the change on system performance}
-
-   ```
+   ```text
    root
    - pkg    // {type: add/del/refact/-} {The role of a folder}
     - utils // {type: add/del/refact} {The function of the file}
@@ -61,53 +66,28 @@
 
 ## 修改记录
 
-### 2025-04-28: 实现文章管理模块（阶段一）
+### 2025-04-30: 优化文章预览功能
 
-- 创建文章模型、分类模型和标签模型，包含以下功能：
-  - 文章可以设置状态（草稿/已发布）和可见性（公开/私密）
-  - 文章支持分类和标签，实现多对多关系
-  - 实现文章的创建时间、更新时间和发布时间记录
+- 修复文章预览中Markdown格式符号显示问题：
+  - 创建自定义模板过滤器`plain_text_preview`，去除Markdown格式符号
+  - 过滤器可以处理各种Markdown元素（标题、加粗、链接等）
+  - 在首页和文章列表页使用该过滤器，提供更好的阅读体验
   
-- 实现基础的文章列表和详情视图：
-  - 支持通过分类和标签过滤文章
-  - 实现分页显示
-  - 整合Markdown渲染支持
-  - 添加目录生成功能
-  - 提供相关文章推荐功能
+- 技术实现细节：
+  - 使用正则表达式处理各种Markdown格式
+  - 将utils应用添加到INSTALLED_APPS配置
+  - 在模板中加载自定义过滤器
   
-- 创建文章相关的模板：
-  - 文章列表页面，支持分类和标签过滤
-  - 文章详情页面，支持Markdown渲染和代码高亮
-  - 添加响应式设计支持
+- 代码实现位置：
 
-- 设置管理后台：
-  - 为文章、分类和标签配置管理界面
-  - 添加筛选、搜索和排序功能
-  
-- 配置项目设置：
-  - 注册文章和评论应用
-  - 配置静态文件和媒体文件路径
-  - 设置模板目录
+  ```text
+  blog/utils/templatetags/markdown_filters.py  // 自定义过滤器实现
+  blog/templates/articles/home.html           // 更新首页模板
+  blog/templates/articles/list.html           // 更新列表页模板
+  blog/config/settings.py                     // 更新应用配置
+  ```
 
-### 2025-04-29: 实现博客首页功能
+### 2025-04-29: 实现CI/CD工作流
 
-- 添加首页视图功能：
-  - 创建home视图函数，获取最新发布的文章
-  - 按发布时间降序排列文章
-  - 限制显示8篇最新文章
-  
-- 创建首页模板：
-  - 设计网格布局，展示最新文章卡片
-  - 添加欢迎信息和网站介绍
-  - 显示文章标题、发布时间、分类和标签
-  - 添加文章摘要和"阅读全文"按钮
-  - 保留侧边栏显示分类和标签云
-  
-- 配置URL路由：
-  - 将首页视图设置为网站根URL的响应视图
-  - 保持原有的文章相关URL结构
-  
-- 更新项目文档：
-  - 更新项目结构说明
-  - 添加首页功能描述
-  - 更新URL结构文档
+- 配置GitHub Actions工作流：
+  - 检测pr，并进行代码检查、测试和自动审阅
