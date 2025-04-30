@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load markdown_filters %}
 
 {% block title %}Blog_OS - 博客平台{% endblock %}
 
@@ -36,7 +37,7 @@
                                         <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
                                     {% endfor %}
                                 </div>
-                                <p class="card-text">{{ article.content|truncatewords:15 }}</p>
+                                <p class="card-text">{{ article.content|plain_text_preview:15 }}</p>
                             </div>
                             <div class="card-footer bg-transparent border-top-0">
                                 <a href="{{ article.get_absolute_url }}" class="btn btn-sm btn-outline-primary">阅读全文</a>

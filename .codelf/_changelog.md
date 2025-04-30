@@ -1,5 +1,30 @@
 ## {datetime: YYYY-MM-DD HH:mm:ss}
 
+### 2025-04-30 14:45:00
+
+### 3. 修复文章预览中Markdown格式符号显示问题
+
+**Change Type**: improvement
+
+> **Purpose**: 优化文章预览效果，去除Markdown格式符号
+> **Detailed Description**: 创建自定义Django模板过滤器`plain_text_preview`，将Markdown文本转换为纯文本预览；修改文章列表和首页模板，使用该过滤器替代原有的truncatewords过滤器
+> **Reason for Change**: 原先的truncatewords过滤器无法处理Markdown格式符号，导致文章预览显示原始Markdown文本
+> **Impact Scope**: 影响文章列表和首页的文章预览显示
+> **API Changes**: 无
+> **Configuration Changes**: 将utils应用添加到INSTALLED_APPS配置
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/utils/templatetags      // add 自定义模板标签和过滤器目录
+     - __init__.py               // add 包初始化文件
+     - markdown_filters.py       // add Markdown文本处理过滤器
+   - blog/templates/articles     // refact 修改文章模板
+     - home.html                 // refact 更新首页模板使用自定义过滤器
+     - list.html                 // refact 更新文章列表模板使用自定义过滤器
+   - blog/config/settings.py     // refact 添加utils应用到INSTALLED_APPS
+   ```
+
 ### 2025-04-27 16:33:00
 
 ### 1. 初始化 .codelf 目录并更新 attention.md 和 project.md
@@ -41,177 +66,28 @@
 
 ## 修改记录
 
-### 2025-04-28: 实现文章管理模块（阶段一）
+### 2025-04-30: 优化文章预览功能
 
-- 创建文章模型、分类模型和标签模型，包含以下功能：
-  - 文章可以设置状态（草稿/已发布）和可见性（公开/私密）
-  - 文章支持分类和标签，实现多对多关系
-  - 实现文章的创建时间、更新时间和发布时间记录
+- 修复文章预览中Markdown格式符号显示问题：
+  - 创建自定义模板过滤器`plain_text_preview`，去除Markdown格式符号
+  - 过滤器可以处理各种Markdown元素（标题、加粗、链接等）
+  - 在首页和文章列表页使用该过滤器，提供更好的阅读体验
   
-- 实现基础的文章列表和详情视图：
-  - 支持通过分类和标签过滤文章
-  - 实现分页显示
-  - 整合Markdown渲染支持
-  - 添加目录生成功能
-  - 提供相关文章推荐功能
+- 技术实现细节：
+  - 使用正则表达式处理各种Markdown格式
+  - 将utils应用添加到INSTALLED_APPS配置
+  - 在模板中加载自定义过滤器
   
-- 创建文章相关的模板：
-  - 文章列表页面，支持分类和标签过滤
-  - 文章详情页面，支持Markdown渲染和代码高亮
-  - 添加响应式设计支持
-
-- 设置管理后台：
-  - 为文章、分类和标签配置管理界面
-  - 添加筛选、搜索和排序功能
-  
-- 配置项目设置：
-  - 注册文章和评论应用
-  - 配置静态文件和媒体文件路径
-  - 设置模板目录
-
-### 2025-04-29: 实现博客首页功能
-
-- 添加首页视图功能：
-  - 创建home视图函数，获取最新发布的文章
-  - 按发布时间降序排列文章
-  - 限制显示8篇最新文章
-  
-- 创建首页模板：
-  - 设计网格布局，展示最新文章卡片
-  - 添加欢迎信息和网站介绍
-  - 显示文章标题、发布时间、分类和标签
-  - 添加文章摘要和"阅读全文"按钮
-  - 保留侧边栏显示分类和标签云
-  
-- 配置URL路由：
-  - 将首页视图设置为网站根URL的响应视图
-  - 保持原有的文章相关URL结构
-  
-- 更新项目文档：
-  - 更新项目结构说明
-  - 添加首页功能描述
-  - 更新URL结构文档
-
-### 2025-04-29: 实现用户管理模块功能（开发者A）
-
-- 实现自定义用户模型：
-  - 继承 AbstractUser，添加自定义字段
-  - 配置 AUTH_USER_MODEL 设置
-  - 实现用户角色逻辑
-
-- 添加用户认证功能：
-  - 实现用户注册视图和模板
-  - 实现用户登录/登出功能
-  - 集成 djangorestframework-simplejwt 实现 JWT 认证
-
-- 配置 Django Admin 界面：
-  - 为自定义用户模型设置管理界面
-  - 添加用户管理功能（创建、编辑、删除用户）
-  - 添加过滤和搜索功能
-
-- 定义用户相关URL：
-  - 设置用户注册、登录、登出URL
-  - 配置用户个人资料URL
-  - 集成到项目主URL配置
-  
-- 代码实现详情：
+- 代码实现位置：
 
   ```text
-  apps/users/models.py     // 自定义User模型定义
-  apps/users/forms.py      // 用户注册和登录表单
-  apps/users/views.py      // 用户注册、登录、登出视图
-  apps/users/urls.py       // 用户相关URL配置
-  apps/users/admin.py      // 用户管理后台配置
-  templates/users/         // 用户相关模板（注册、登录等）
-  config/settings.py       // AUTH_USER_MODEL和认证配置
-  config/urls.py           // 主URL配置更新
+  blog/utils/templatetags/markdown_filters.py  // 自定义过滤器实现
+  blog/templates/articles/home.html           // 更新首页模板
+  blog/templates/articles/list.html           // 更新列表页模板
+  blog/config/settings.py                     // 更新应用配置
   ```
 
-### 2025-04-29 17:33:36
+### 2025-04-29: 实现CI/CD工作流
 
-### 2. 实现用户管理模块功能
-
-**Change Type**: feature
-
-> **Purpose**: 实现博客系统的用户认证和管理功能
-> **Detailed Description**: 创建自定义用户模型继承AbstractUser；实现用户注册、登录、登出功能；集成JWT认证；配置Django Admin后台管理；设置用户相关URL路由
-> **Reason for Change**: 为博客系统提供必要的用户管理基础设施
-> **Impact Scope**: 影响文章模块中的作者关联
-> **API Changes**: 添加用户注册、登录API端点
-> **Configuration Changes**: 配置AUTH_USER_MODEL和JWT设置
-> **Performance Impact**: 无明显性能影响
-
-   ```text
-   root
-   - blog/apps/users             // add 用户管理模块
-     - models.py                 // add 自定义User模型
-     - forms.py                  // add 用户表单
-     - views.py                  // add 用户视图
-     - urls.py                   // add 用户URL配置
-     - admin.py                  // add 用户管理后台
-   - blog/templates/users        // add 用户模板目录
-     - register.html            // add 注册模板
-     - login.html               // add 登录模板
-     - profile.html             // add 个人资料模板
-   - blog/config/settings.py     // refact 更新AUTH_USER_MODEL和JWT配置
-   - blog/config/urls.py         // refact 更新主URL配置
-   ```
-
-### 2025-05-02: 实现CI/CD工作流
-
-- 添加GitHub Actions工作流：
-  - 创建PR自动审阅与合并工作流
-  - 创建Main分支PR合并自动化测试工作流
-  - 创建Main分支保护配置工作流
-  
-- 添加PR模板：
-  - 创建Main分支PR专用模板
-  - 创建默认PR模板
-  
-- 创建文档：
-  - 编写CI/CD工作流程文档，说明工作流程和使用方法
-  
-- 工作流功能：
-  - PR自动审阅：自动进行代码检查和测试，添加评论和标签
-  - Main分支PR测试：验证PR格式，进行代码检查、测试、安全检查和集成测试
-  - Main分支保护：设置分支保护规则，确保只有经过测试和审阅的代码才能合并
-  
-- 更新项目文档：
-  - 更新项目结构说明，添加CI/CD相关文件
-  - 添加CI/CD配置说明
-
-### 2025-05-03: 优化CI/CD工作流
-
-- 简化CI工作流：
-  - 移除安全检查部分，专注于项目功能验证
-  - 解决uv缓存问题，简化Python环境配置
-  - 添加数据库迁移容错机制，处理可能的数据库错误
-  
-- 更新分支保护规则：
-  - 调整必须通过的状态检查项目
-  - 保留代码所有者审阅要求
-  
-- 更新CI/CD文档：
-  - 添加特别说明部分，明确本CI配置为学习项目设计
-  - 说明简化的测试流程和数据库处理方式
-  
-- 项目文档更新：
-  - 添加CI特别说明，提供简化的原因和处理方式
-  - 更新工作流步骤描述
-
-### 2025-05-04: 修复CI依赖安装问题
-
-- 改进依赖安装策略：
-  - 增加对不同依赖文件类型的检测和支持
-  - 针对pyproject.toml、requirements.txt等不同情况采用不同安装方式
-  - 当没有找到依赖文件时，直接安装Django及其他必要依赖
-  
-- 增强错误处理：
-  - 为项目检查添加容错处理，即使失败也继续执行
-  - 显式确认Django已安装，输出Django版本信息
-  - 确保MySQL客户端库安装正确
-  
-- 优化构建稳定性：
-  - 更新pip确保最新版本
-  - 添加依赖安装状态检查
-  - 提高CI构建成功率
+- 配置GitHub Actions工作流：
+  - 检测pr，并进行代码检查、测试和自动审阅
