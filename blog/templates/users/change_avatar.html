@@ -12,17 +12,28 @@
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
-                    {% if user.avatar %}
-                        <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="rounded-circle img-fluid mb-3" style="max-width: 150px;">
-                    {% else %}
-                        <img src="{% static 'images/default-avatar.png' %}" alt="{{ user.username }}" class="rounded-circle img-fluid mb-3" style="max-width: 150px;">
-                    {% endif %}
-                    <p class="text-muted">当前头像</p>
+                    <div class="avatar-container" style="width: 150px; height: 150px; margin: 0 auto; overflow: hidden; border-radius: 50%; position: relative;">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <img src="{% static 'images/default-avatar.png' %}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <p class="text-muted mt-2">当前头像</p>
                 </div>
-                
+
+                <div class="alert alert-info">
+                    <h5>头像上传提示：</h5>
+                    <ul>
+                        <li>头像将被自动裁剪为正方形，并以圆形显示</li>
+                        <li>建议上传正方形图片以获得最佳效果</li>
+                        <li>支持JPG、PNG、GIF格式的图片</li>
+                    </ul>
+                </div>
+
                 <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
-                    
+
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger">
                             {% for error in form.non_field_errors %}
@@ -30,7 +41,7 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                    
+
                     <div class="mb-3">
                         <label for="{{ form.avatar.id_for_label }}" class="form-label">{{ form.avatar.label }}</label>
                         {{ form.avatar }}
@@ -43,7 +54,7 @@
                         {% endif %}
                         <div class="form-text">支持JPG、PNG、GIF格式，建议上传正方形图片。</div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'users:profile' username=user.username %}" class="btn btn-secondary">取消</a>
                         <button type="submit" class="btn btn-primary">上传头像</button>
