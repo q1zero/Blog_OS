@@ -98,6 +98,84 @@ def article_list(request, category_slug=None, tag_id=None):
     )
 
 
+@login_required
+def my_published_articles(request):
+    """显示当前用户的已发布文章，包括公开和私密"""
+    # 获取当前用户的已发布文章，不论可见性
+    articles = Article.objects.filter(author=request.user, status="published")  # type: ignore
+
+    # 分页
+    paginator = Paginator(articles, 10)  # 每页显示10篇文章
+    page = request.GET.get("page")
+    try:
+        articles = paginator.page(page)
+    except PageNotAnInteger:
+        # 如果page参数不是整数，显示第一页
+        articles = paginator.page(1)
+    except EmptyPage:
+        # 如果page参数超出范围，显示最后一页
+        articles = paginator.page(paginator.num_pages)
+
+    # 获取所有分类和标签，用于侧边栏
+    categories = Category.objects.all()  # type: ignore
+    # 只获取至少关联了一篇文章的标签
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(  # type: ignore
+        articles_count__gt=0
+    )
+
+    return render(
+        request,
+        "articles/list.html",
+        {
+            "articles": articles,
+            "page": page,
+            "categories": categories,
+            "tags": tags,
+            "is_my_articles": True,  # 用于模板中区分是否是我的文章视图
+            "view_type": "published",  # 用于区分是已发布文章视图
+        },
+    )
+
+
+@login_required
+def my_draft_articles(request):
+    """显示当前用户的草稿文章"""
+    # 获取当前用户的草稿文章
+    articles = Article.objects.filter(author=request.user, status="draft")  # type: ignore
+
+    # 分页
+    paginator = Paginator(articles, 10)  # 每页显示10篇文章
+    page = request.GET.get("page")
+    try:
+        articles = paginator.page(page)
+    except PageNotAnInteger:
+        # 如果page参数不是整数，显示第一页
+        articles = paginator.page(1)
+    except EmptyPage:
+        # 如果page参数超出范围，显示最后一页
+        articles = paginator.page(paginator.num_pages)
+
+    # 获取所有分类和标签，用于侧边栏
+    categories = Category.objects.all()  # type: ignore
+    # 只获取至少关联了一篇文章的标签
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(  # type: ignore
+        articles_count__gt=0
+    )
+
+    return render(
+        request,
+        "articles/list.html",
+        {
+            "articles": articles,
+            "page": page,
+            "categories": categories,
+            "tags": tags,
+            "is_my_articles": True,  # 用于模板中区分是否是我的文章视图
+            "view_type": "draft",  # 用于区分是草稿文章视图
+        },
+    )
+
+
 def generate_unique_slug(tag_name):
     """生成唯一的标签slug，确保中文标签也能有有效的slug"""
     # 尝试使用slugify处理
@@ -127,9 +205,13 @@ def generate_unique_slug(tag_name):
 
 def article_detail(request, article_slug):
     """文章详情视图"""
-    article = get_object_or_404(
-        Article, slug=article_slug, status="published", visibility="public"
-    )
+    article = get_object_or_404(Article, slug=article_slug)
+    
+    # 检查是否是文章作者，如果不是，则只能查看已发布且公开的文章
+    if article.author != request.user:
+        if article.status != "published" or article.visibility != "public":
+            messages.error(request, _("您无权查看此文章！"))
+            return redirect("articles:article_list")
 
     # 使用Markdown渲染文章内容
     md = markdown.Markdown(
@@ -437,4 +519,21 @@ def toggle_favorite(request, article_slug):
 
     # 如果是普通请求，添加消息并重定向
     messages.success(request, message)
+    return redirect("articles:article_detail", article_slug=article.slug)
+
+
+@login_required
+def publish_article(request, article_slug):
+    """发布草稿文章"""
+    article = get_object_or_404(Article, slug=article_slug, author=request.user)
+    
+    if article.status == "draft":
+        article.status = "published"
+        if not article.published_at:
+            article.published_at = timezone.now()
+        article.save()
+        messages.success(request, _("文章已成功发布！"))
+    else:
+        messages.info(request, _("文章已经是发布状态！"))
+    
     return redirect("articles:article_detail", article_slug=article.slug)

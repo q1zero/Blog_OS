@@ -45,6 +45,10 @@
                             <small class="text-muted">
                                 <i class="bi bi-heart"></i> {{ article.likes.count }}
                                 <i class="bi bi-bookmark ms-2"></i> {{ article.favorites.count }}
+                                {% if is_my_articles %}
+                                    <span class="badge bg-{% if article.visibility == 'public' %}success{% else %}warning{% endif %} ms-2">{% if article.visibility == 'public' %}公开{% else %}私密{% endif %}</span>
+                                    <span class="badge bg-{% if article.status == 'published' %}primary{% else %}secondary{% endif %} ms-2">{% if article.status == 'published' %}已发布{% else %}草稿{% endif %}</span>
+                                {% endif %}
                             </small>
                         </div>
                     </div>

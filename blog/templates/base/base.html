@@ -29,6 +29,15 @@
                     <li class="nav-item">
                         <a class="nav-link {% if '/articles/create/' in request.path %}active{% endif %}" href="{% url 'articles:article_create' %}">创建文章</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if '/articles/my/' in request.path %}active{% endif %}" href="#" id="myArticlesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            我的文章
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="myArticlesDropdown">
+                            <li><a class="dropdown-item" href="{% url 'articles:my_published_articles' %}">已发布</a></li>
+                            <li><a class="dropdown-item" href="{% url 'articles:my_draft_articles' %}">草稿箱</a></li>
+                        </ul>
+                    </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">

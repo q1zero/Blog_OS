@@ -1,5 +1,58 @@
 ## {datetime: YYYY-MM-DD HH:mm:ss}
 
+### 2025-05-01 01:23
+
+### 12. 更新我的文章视图和状态显示
+
+**Change Type**: feature
+
+> **Purpose**: 改进我的文章视图，分别显示已发布和草稿文章，并在预览中显示状态
+> **Detailed Description**:
+>
+> 1. 将`my_articles`视图拆分为`my_published_articles`和`my_draft_articles`，分别显示已发布文章（包括公开和私密）和草稿文章
+> 2. 更新导航栏，将“我的文章”改为下拉菜单，包含“已发布”和“草稿箱”选项
+> 3. 在文章列表预览的右下角添加状态标签，显示公开/私密和草稿/已发布状态（使用中文展示）
+> **Reason for Change**: 满足用户需求，分别管理已发布和草稿文章，并直观显示文章状态
+> **Impact Scope**: 影响文章管理模块，新增视图和URL，更新前端展示
+> **API Changes**: 将`/articles/my/`拆分为`/articles/my/published/`和`/articles/my/drafts/`
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/apps/articles
+     - views.py               // refact 更新我的文章视图，拆分为已发布和草稿视图
+     - urls.py                // refact 更新URL模式，引用新的视图名称
+   - blog/templates/base
+     - base.html              // refact 更新导航栏，添加下拉菜单
+   - blog/templates/articles
+     - list.html              // refact 添加状态标签，显示公开/私密和草稿/已发布
+   ```
+
+### 2025-05-01 01:07
+
+### 11. 添加我的文章视图和草稿发布功能
+
+**Change Type**: feature
+
+> **Purpose**: 允许用户查看自己的所有文章，包括草稿和私密文章，并支持草稿一键发布
+> **Detailed Description**:
+>
+> 1. 添加`my_articles`视图，显示当前用户的所有文章，不论状态和可见性
+> 2. 修改`article_detail`视图，允许作者查看自己的未发布或私密文章
+> 3. 添加`publish_article`视图，支持用户将草稿文章一键发布
+> **Reason for Change**: 满足用户需求，允许用户管理自己的所有文章，并方便地将草稿发布
+> **Impact Scope**: 影响文章管理模块，新增视图和URL
+> **API Changes**: 新增`/articles/my/`和`/articles/publish/<slug>/`URL
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/apps/articles
+     - views.py               // refact 添加我的文章视图和草稿发布功能
+   ```
+
 ### 2025-04-30 15:33
 
 ### 4. 调整文章详情页和评论系统UI
