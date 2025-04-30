@@ -1,0 +1,33 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}注册成功 - Blog_OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">注册成功</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-envelope-check" style="font-size: 4rem; color: #28a745;"></i>
+                </div>
+                <h5 class="text-center mb-3">请验证您的邮箱</h5>
+                <p class="text-center">
+                    我们已向您的邮箱发送了一封验证邮件。<br>
+                    请点击邮件中的链接激活您的账号。
+                </p>
+                <p class="text-center text-muted">
+                    如果您没有收到验证邮件，请检查垃圾邮件文件夹，或者
+                    <a href="{% url 'users:resend_verification' %}">点击这里重新发送</a>。
+                </p>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'users:login' %}" class="btn btn-primary">返回登录页面</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

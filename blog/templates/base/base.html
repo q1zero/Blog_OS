@@ -32,7 +32,7 @@
                             {{ request.user.username }}
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">个人中心</a></li>
+                            <li><a class="dropdown-item" href="{% url 'users:profile' username=request.user.username %}">个人中心</a></li>
                             {% if request.user.is_staff %}
                             <li><a class="dropdown-item" href="{% url 'admin:index' %}">管理后台</a></li>
                             {% endif %}
