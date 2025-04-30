@@ -147,11 +147,11 @@ jobs:
           cd blog
           python manage.py check || echo "项目检查失败，但继续执行下一步"
       
-      - name: 尝试运行数据库迁移
-        continue-on-error: true
-        run: |
-          cd blog
-          python manage.py migrate --fake-initial || python manage.py migrate --run-syncdb || echo "数据库迁移跳过，继续执行下一步"
+      # - name: 尝试运行数据库迁移
+      #   continue-on-error: true
+      #   run: |
+      #     cd blog
+      #     python manage.py migrate --fake-initial || python manage.py migrate --run-syncdb || echo "数据库迁移跳过，继续执行下一步"
       
       - name: 验证Django项目能启动
         run: |
