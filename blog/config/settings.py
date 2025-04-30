@@ -199,3 +199,23 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+# 邮件配置
+# 开发环境使用控制台后端
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# 生产环境使用SMTP后端
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.tjise.edu.cn'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True  # 注意：端口465通常使用SSL而非TLS
+EMAIL_HOST_USER = '2450310705@stu.tjise.edu.cn'
+EMAIL_HOST_PASSWORD = 'ZbpRDBa1d7Kzjpqy'
+
+# 默认发件人邮箱
+DEFAULT_FROM_EMAIL = '2450310705@stu.tjise.edu.cn'
+
+# 站点URL，用于构建完整的URL
+SITE_URL = 'http://127.0.0.1:8000'
+
+
