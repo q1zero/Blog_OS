@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from .forms import UserRegisterForm, UserLoginForm, UserProfileForm, UserAvatarForm
 from .models import User, EmailVerification
-from .utils import send_verification_email
+from .utils import send_verification_email, crop_and_resize_image
 
 
 def register(request):
@@ -179,12 +179,27 @@ class UserProfileEditView(LoginRequiredMixin, UpdateView):
 
 @login_required
 def change_avatar(request):
-    """更改用户头像"""
+    """更改用户头像，并裁剪为正方形"""
     if request.method == 'POST':
         form = UserAvatarForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
-            messages.success(request, _('头像更新成功！'))
+            # 如果有新头像上传
+            if 'avatar' in request.FILES:
+                # 裁剪并调整图片大小
+                print(f"Processing avatar image: {request.FILES['avatar'].name}")
+                processed_image = crop_and_resize_image(request.FILES['avatar'])
+
+                # 将处理后的图片设置为用户头像
+                user = form.save(commit=False)
+                user.avatar = processed_image
+                user.save()
+
+                print(f"Avatar updated successfully: {user.avatar.name}")
+                messages.success(request, _('头像更新成功！'))
+            else:
+                form.save()
+                messages.success(request, _('信息更新成功！'))
+
             return redirect('users:profile', username=request.user.username)
     else:
         form = UserAvatarForm(instance=request.user)

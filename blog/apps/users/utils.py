@@ -1,11 +1,79 @@
 import datetime
+import os
+from io import BytesIO
+from PIL import Image
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from .models import EmailVerification
+
+
+def crop_and_resize_image(image_file, size=(300, 300), format='JPEG'):
+    """
+    裁剪并调整图片大小为正方形
+
+    Args:
+        image_file: 上传的图片文件
+        size: 目标尺寸，默认为300x300
+        format: 输出图片格式，默认为JPEG
+
+    Returns:
+        处理后的图片文件对象
+    """
+    try:
+        # 打开图片
+        img = Image.open(image_file)
+
+        # 确保图片是RGB模式（去除透明通道）
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        # 获取原始尺寸
+        width, height = img.size
+
+        # 计算裁剪区域（居中裁剪为正方形）
+        if width > height:
+            # 宽图，裁剪左右两侧
+            left = (width - height) // 2
+            top = 0
+            right = left + height
+            bottom = height
+        else:
+            # 长图，裁剪上下两侧
+            left = 0
+            top = (height - width) // 2
+            right = width
+            bottom = top + width
+
+        # 裁剪为正方形
+        img = img.crop((left, top, right, bottom))
+
+        # 调整大小
+        img = img.resize(size, Image.LANCZOS)
+
+        # 保存处理后的图片到内存中
+        output = BytesIO()
+        img.save(output, format=format, quality=95)
+        output.seek(0)
+
+        # 创建新的文件对象
+        return InMemoryUploadedFile(
+            output,
+            'ImageField',
+            f"{os.path.splitext(image_file.name)[0]}.jpg",
+            'image/jpeg',
+            output.getbuffer().nbytes,
+            None
+        )
+    except Exception as e:
+        print(f"图片处理失败: {e}")
+        import traceback
+        traceback.print_exc()
+        return image_file  # 如果处理失败，返回原始图片
 
 
 def send_verification_email(user, request=None):
