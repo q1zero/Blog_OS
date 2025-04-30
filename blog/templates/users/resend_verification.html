@@ -1,0 +1,37 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}重新发送验证邮件 - Blog_OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">重新发送验证邮件</h4>
+            </div>
+            <div class="card-body">
+                <p class="mb-4">
+                    如果您没有收到验证邮件或验证链接已过期，请输入您注册时使用的邮箱地址，我们将重新发送验证邮件。
+                </p>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱地址</label>
+                        <input type="email" name="email" id="email" class="form-control" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">发送验证邮件</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'users:login' %}">返回登录页面</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
