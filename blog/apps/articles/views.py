@@ -11,6 +11,7 @@ import json
 import uuid
 import re
 from django.db import models
+from typing import Any, Optional, cast  # 添加类型提示导入
 
 from .models import Article, Category, Tag, Like, Favorite
 from django import forms
@@ -50,7 +51,8 @@ class ArticleForm(forms.ModelForm):
 
 def article_list(request, category_slug=None, tag_id=None):
     """文章列表视图，支持分类和标签过滤"""
-    articles = Article.objects.filter(status="published", visibility="public")
+    # 忽略类型检查器的Django ORM错误
+    articles = Article.objects.filter(status="published", visibility="public")  # type: ignore
 
     category = None
     tag = None
@@ -76,9 +78,9 @@ def article_list(request, category_slug=None, tag_id=None):
         articles = paginator.page(paginator.num_pages)
 
     # 获取所有分类和标签，用于侧边栏
-    categories = Category.objects.all()
+    categories = Category.objects.all()  # type: ignore
     # 只获取至少关联了一篇文章的标签
-    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(  # type: ignore
         articles_count__gt=0
     )
 
@@ -115,7 +117,7 @@ def generate_unique_slug(tag_name):
     # 检查是否已存在相同的slug
     counter = 1
     original_slug = tag_slug
-    while Tag.objects.filter(slug=tag_slug).exists():
+    while Tag.objects.filter(slug=tag_slug).exists():  # type: ignore
         # 如果已存在，添加数字后缀
         tag_slug = f"{original_slug}-{counter}"
         counter += 1
@@ -139,28 +141,32 @@ def article_detail(request, article_slug):
     )
     article.content = md.convert(article.content)
 
-    # 为文章添加目录属性
-    article.toc = md.toc if hasattr(md, "toc") else ""
+    # 为文章添加目录属性 - 使用类型忽略注解
+    # 在Python中，动态添加的属性不会被类型检查器识别，使用setattr避免这个问题
+    toc_value = ""
+    if hasattr(md, "toc"):  # type: ignore
+        toc_value = md.toc  # type: ignore
+    setattr(article, "toc", toc_value)
 
     # 获取相关文章（同一分类或有共同标签的文章）
     if article.category:
-        related_articles = Article.objects.filter(
+        related_articles = Article.objects.filter(  # type: ignore
             category=article.category, status="published", visibility="public"
-        ).exclude(id=article.id)[:5]
+        ).exclude(pk=article.pk)[:5]
     else:
         # 如果没有分类，尝试通过标签获取相关文章
         related_articles = (
-            Article.objects.filter(
+            Article.objects.filter(  # type: ignore
                 tags__in=article.tags.all(), status="published", visibility="public"
             )
-            .exclude(id=article.id)
+            .exclude(pk=article.pk)
             .distinct()[:5]
         )
 
     # 获取文章评论列表
     from apps.comments.models import Comment
 
-    comments = Comment.objects.filter(
+    comments = Comment.objects.filter(  # type: ignore
         article=article, parent=None, is_approved=True
     ).select_related("author")
 
@@ -173,8 +179,8 @@ def article_detail(request, article_slug):
     user_liked = False
     user_favorited = False
     if request.user.is_authenticated:
-        user_liked = Like.objects.filter(user=request.user, article=article).exists()
-        user_favorited = Favorite.objects.filter(
+        user_liked = Like.objects.filter(user=request.user, article=article).exists()  # type: ignore
+        user_favorited = Favorite.objects.filter(  # type: ignore
             user=request.user, article=article
         ).exists()
 
@@ -195,14 +201,14 @@ def article_detail(request, article_slug):
 def home(request):
     """首页视图，展示最新发布的文章"""
     # 获取已发布且公开的文章，按发布时间排序
-    latest_articles = Article.objects.filter(
+    latest_articles = Article.objects.filter(  # type: ignore
         status="published", visibility="public"
     ).order_by("-published_at")[:8]  # 显示最新的8篇文章
 
     # 获取所有分类和标签，用于侧边栏
-    categories = Category.objects.all()
+    categories = Category.objects.all()  # type: ignore
     # 只获取至少关联了一篇文章的标签
-    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(  # type: ignore
         articles_count__gt=0
     )
 
@@ -247,7 +253,7 @@ def article_create(request):
                 # 为每个标签名称创建或获取标签实例
                 for tag_name in tag_names:
                     # 获取或创建标签
-                    tag, created = Tag.objects.get_or_create(name=tag_name)
+                    tag, created = Tag.objects.get_or_create(name=tag_name)  # type: ignore
 
                     # 如果是新创建的标签，需要保存让其生成ID后自动设置slug
                     if created:
@@ -261,9 +267,9 @@ def article_create(request):
     else:
         form = ArticleForm()
 
-    categories = Category.objects.all()
+    categories = Category.objects.all()  # type: ignore
     # 只获取至少关联了一篇文章的标签
-    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(  # type: ignore
         articles_count__gt=0
     )
 
@@ -311,7 +317,7 @@ def article_update(request, article_slug):
                 # 为每个标签名称创建或获取标签实例
                 for tag_name in tag_names:
                     # 获取或创建标签
-                    tag, created = Tag.objects.get_or_create(name=tag_name)
+                    tag, created = Tag.objects.get_or_create(name=tag_name)  # type: ignore
 
                     # 如果是新创建的标签，需要保存让其生成ID后自动设置slug
                     if created:
@@ -327,9 +333,9 @@ def article_update(request, article_slug):
         existing_tags = ", ".join([tag.name for tag in article.tags.all()])
         form = ArticleForm(instance=article, initial={"tags_input": existing_tags})
 
-    categories = Category.objects.all()
+    categories = Category.objects.all()  # type: ignore
     # 只获取至少关联了一篇文章的标签
-    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(  # type: ignore
         articles_count__gt=0
     )
 
@@ -367,7 +373,7 @@ def toggle_like(request, article_slug):
     user = request.user
 
     # 检查用户是否已经点赞过该文章
-    like, created = Like.objects.get_or_create(user=user, article=article)
+    like, created = Like.objects.get_or_create(user=user, article=article)  # type: ignore
 
     # 如果已经点赞，则取消点赞
     if not created:
@@ -382,7 +388,7 @@ def toggle_like(request, article_slug):
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         from django.http import JsonResponse
 
-        likes_count = Like.objects.filter(article=article).count()
+        likes_count = Like.objects.filter(article=article).count()  # type: ignore
         return JsonResponse(
             {
                 "status": "success",
@@ -404,7 +410,7 @@ def toggle_favorite(request, article_slug):
     user = request.user
 
     # 检查用户是否已经收藏过该文章
-    favorite, created = Favorite.objects.get_or_create(user=user, article=article)
+    favorite, created = Favorite.objects.get_or_create(user=user, article=article)  # type: ignore
 
     # 如果已经收藏，则取消收藏
     if not created:
@@ -419,7 +425,7 @@ def toggle_favorite(request, article_slug):
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         from django.http import JsonResponse
 
-        favorites_count = Favorite.objects.filter(article=article).count()
+        favorites_count = Favorite.objects.filter(article=article).count()  # type: ignore
         return JsonResponse(
             {
                 "status": "success",

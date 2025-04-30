@@ -321,3 +321,11 @@
    - blog/apps/articles
      - views.py               // refact 筛选有效标签，隐藏空标签
    ```
+
+# 变更日志
+
+## 2025-04-30
+
+- 更新自动合并PR功能，使用自定义令牌CUSTOM_GITHUB_TOKEN替代默认的GITHUB_TOKEN
+- 使用仓库环境变量CUSTOM_GITHUB_TOKEN获取权限进行合并操作
+- 只有非草稿状态的PR才会被自动合并

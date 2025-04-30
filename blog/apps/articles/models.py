@@ -43,12 +43,12 @@ class Tag(models.Model):
 
     def save(self, *args, **kwargs):
         # 如果没有设置slug，使用ID
-        if not self.slug and self.id:
-            self.slug = str(self.id)
+        if not self.slug and self.pk:
+            self.slug = str(self.pk)
         super().save(*args, **kwargs)
         # 如果创建后仍然没有slug（第一次保存），再次保存以设置slug
         if not self.slug:
-            self.slug = str(self.id)
+            self.slug = str(self.pk)
             super().save(update_fields=["slug"])
 
 
@@ -109,12 +109,12 @@ class Article(models.Model):
         if self.status == "published" and not self.published_at:
             self.published_at = timezone.now()
         # 如果没有设置slug，使用ID
-        if not self.slug and self.id:
-            self.slug = str(self.id)
+        if not self.slug and self.pk:
+            self.slug = str(self.pk)
         super().save(*args, **kwargs)
         # 如果创建后仍然没有slug（第一次保存），再次保存以设置slug
         if not self.slug:
-            self.slug = str(self.id)
+            self.slug = str(self.pk)
             super().save(update_fields=["slug"])
 
 
@@ -143,7 +143,8 @@ class Like(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user.username} 点赞了 {self.article.title}"
+        # 使用str()方法获取关联对象的属性，避免类型检查错误
+        return f"{str(self.user)} 点赞了 {str(self.article)}"
 
 
 class Favorite(models.Model):
@@ -171,4 +172,5 @@ class Favorite(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user.username} 收藏了 {self.article.title}"
+        # 使用str()方法获取关联对象的属性，避免类型检查错误
+        return f"{str(self.user)} 收藏了 {str(self.article)}"
