@@ -176,7 +176,35 @@ jobs:
           echo "✅ 基本集成测试通过"
           echo "=============================================="
           echo "🎉 恭喜！所有测试已通过 🎉"
-          echo "请管理员手动合并此PR到main分支"
+          echo "PR将自动合并到main分支"
           echo "=============================================="
           PR_URL="https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
           echo "PR地址: $PR_URL" 
+  
+  auto-merge-pr:
+    name: 自动合并PR
+    needs: [final-report]
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+      
+      - name: 自动合并PR到main分支
+        run: |
+          echo "开始自动合并PR #${{ github.event.pull_request.number }} 到main分支..."
+          
+          # 使用仓库环境变量中的自定义令牌进行认证
+          gh auth login --with-token <<< "${{ secrets.CUSTOM_GITHUB_TOKEN }}"
+          
+          # 设置Git用户信息
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # 使用GitHub CLI合并PR
+          gh pr merge ${{ github.event.pull_request.number }} --merge --delete-branch
+          
+          echo "PR #${{ github.event.pull_request.number }} 已成功合并到main分支！"
+        env:
+          GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }} 
