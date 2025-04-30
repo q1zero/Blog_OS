@@ -144,7 +144,7 @@
                         {% endif %}
                     </div>
                     
-                    {% if request.user == article.author %}
+                    {% if request.user.is_staff or request.user == article.author %}
                     <div class="article-actions">
                         <div class="btn-group">
                             <a href="{% url 'articles:article_update' article_slug=article.slug %}" class="btn btn-sm btn-outline-primary">

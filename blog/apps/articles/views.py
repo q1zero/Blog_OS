@@ -365,8 +365,11 @@ def article_create(request):
 @login_required
 def article_update(request, article_slug):
     """文章更新视图，要求用户登录"""
-    # 获取文章，不过滤状态和可见性，因为作者需要能编辑所有自己的文章
-    article = get_object_or_404(Article, slug=article_slug, author=request.user)
+    # 获取文章，管理员可以编辑所有文章，普通用户只能编辑自己的文章
+    if request.user.is_staff:
+        article = get_object_or_404(Article, slug=article_slug)
+    else:
+        article = get_object_or_404(Article, slug=article_slug, author=request.user)
 
     if request.method == "POST":
         form = ArticleForm(request.POST, instance=article)
@@ -437,8 +440,11 @@ def article_update(request, article_slug):
 @login_required
 def article_delete(request, article_slug):
     """文章删除视图，要求用户登录"""
-    # 获取文章，确保只能删除自己的文章
-    article = get_object_or_404(Article, slug=article_slug, author=request.user)
+    # 获取文章，管理员可以删除所有文章，普通用户只能删除自己的文章
+    if request.user.is_staff:
+        article = get_object_or_404(Article, slug=article_slug)
+    else:
+        article = get_object_or_404(Article, slug=article_slug, author=request.user)
 
     if request.method == "POST":
         article.delete()

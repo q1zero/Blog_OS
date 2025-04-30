@@ -135,21 +135,21 @@
             element: document.getElementById("{{ form.content.id_for_label }}"),
             spellChecker: false,
             autosave: {
-                enabled: true,
-                uniqueId: "article_editor",
-                delay: 1000,
+                enabled: false,
             },
             renderingConfig: {
                 codeSyntaxHighlighting: true,
             },
             toolbar: [
-                "bold", "italic", "heading", "|", 
-                "quote", "unordered-list", "ordered-list", "|", 
+                "bold", "italic", "heading", "|",
+                "quote", "unordered-list", "ordered-list", "|",
                 "link", "image", "table", "code", "|",
                 "preview", "side-by-side", "fullscreen", "|",
                 "guide"
             ]
         });
+        // 确保编辑器内容与当前文章内容一致
+        simplemde.value(document.getElementById("{{ form.content.id_for_label }}").value);
 
         // 初始化Tagify标签输入
         var tagsInput = document.querySelector('input[name="{{ form.tags_input.html_name }}"]');

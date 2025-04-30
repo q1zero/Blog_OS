@@ -1,3 +1,32 @@
+## 2025-05-01 01:53
+
+### 14. 为管理员添加全局文章编辑和删除功能
+
+**Change Type**: feature
+
+> **Purpose**: 允许管理员对所有已发布公开文章进行编辑和删除操作
+> **Detailed Description**:
+>
+> 1. 在文章列表和详情页面为管理员添加编辑和删除按钮
+> 2. 修改视图函数，确保管理员有权限编辑和删除所有文章
+> 3. 在文章列表中添加删除确认弹窗，并通过AJAX请求实现删除功能
+> 4. 确保编辑页面显示当前文章的内容，而不是之前的内容
+> **Reason for Change**: 满足管理员管理所有文章的需求
+> **Impact Scope**: 影响文章管理模块，更新视图、模板和交互逻辑
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/apps/articles
+     - views.py               // refact 更新视图函数，允许管理员编辑和删除所有文章
+   - blog/templates/articles
+     - list.html              // refact 添加编辑和删除按钮，添加删除确认弹窗
+     - detail.html            // refact 添加编辑和删除按钮
+     - article_form.html      // refact 确保编辑页面显示当前文章内容
+   ```
+
 ## 2025-05-01 01:35
 
 ### 13. 添加评论审核功能
