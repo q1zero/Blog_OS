@@ -98,21 +98,52 @@ root
    * 基本信息：用户名、邮箱、密码、头像、个人简介
    * 角色管理：普通用户、管理员身份标识
    * 状态管理：账号激活状态、最后登录时间
+   * 继承自AbstractUser，保留Django原生用户系统的所有功能
+
+2. **EmailVerification（邮箱验证）**
+   * 基本信息：UUID令牌、创建时间、过期时间、验证状态
+   * 关联用户：外键关联到User模型
+   * 验证逻辑：检查令牌是否有效、是否过期
 
 **主要功能：**
 
-1. 用户注册与认证（支持用户名/邮箱注册）
-2. 用户登录/登出管理（使用JWT令牌认证）
-3. 用户个人资料管理（查看和编辑）
-4. 用户权限管理（基于角色的访问控制）
+1. 用户注册与认证
+   * 支持用户名/邮箱注册
+   * 邮箱验证功能，确保邮箱真实性
+   * 验证链接过期处理和重新发送功能
+
+2. 用户登录/登出管理
+   * 使用Django原生会话认证
+   * 集成JWT令牌认证支持API访问
+   * 登录状态管理和记录
+
+3. 用户个人资料管理
+   * 个人资料展示页面
+   * 个人信息编辑功能
+   * 头像上传与裁剪功能（自动裁剪为正方形）
+   * 密码修改功能
+
+4. 用户激活与禁用管理
+   * 管理员可以批量激活/禁用用户
+   * 邮箱验证后自动激活账号
+
+5. 用户权限管理
+   * 基于角色的访问控制
+   * 使用Django的权限系统进行管理
 
 **URL结构：**
 
 * `/users/register/` - 用户注册
+* `/users/register/done/` - 注册完成页面
+* `/users/verify-email/<token>/` - 邮箱验证
+* `/users/resend-verification/` - 重新发送验证邮件
 * `/users/login/` - 用户登录
 * `/users/logout/` - 用户登出
-* `/users/profile/` - 用户个人资料
-* `/users/password/change/` - 密码修改
+* `/users/profile/<username>/` - 用户个人资料
+* `/users/profile/edit/` - 编辑个人资料
+* `/users/profile/change-avatar/` - 更换头像
+* `/users/profile/change-password/` - 修改密码
+* `/users/profile/change-password/done/` - 密码修改完成
 
 ### 文章管理模块
 
