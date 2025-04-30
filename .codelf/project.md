@@ -75,6 +75,7 @@ root
         - comments   // 评论相关模板
             - comment.html   // 评论组件（支持嵌套，使用JS弹窗确认删除）
             - comment_confirm_delete.html // 评论删除确认页面
+            - review_comments.html // 评论审核页面（管理员专用）
     - static         // 静态文件目录
         - css        // 样式文件目录
             - style.css      // 主要样式文件
@@ -238,6 +239,7 @@ root
 
 * `/comments/<article_slug>/add/` - 添加评论
 * `/comments/<comment_id>/delete/` - 删除评论
+* `/comments/review/` - 审核评论（管理员专用）
 
 ### 工具模块
 

@@ -1,3 +1,33 @@
+## 2025-05-01 01:35
+
+### 13. 添加评论审核功能
+
+**Change Type**: feature
+
+> **Purpose**: 为管理员添加评论审核功能，允许查看和管理待审核与已通过的评论
+> **Detailed Description**:
+>
+> 1. 在评论应用中添加`review_comments`视图，显示所有评论，分为待审核和已通过两个栏目
+> 2. 创建评论审核页面模板，包含两个选项卡分别显示待审核和已通过的评论
+> 3. 为管理员在导航栏添加“审核评论”链接
+> 4. 支持管理员通过或拒绝评论，拒绝的评论将被删除
+> **Reason for Change**: 满足管理员管理评论的需求，确保评论内容符合平台规范
+> **Impact Scope**: 影响评论系统模块，新增视图、URL和模板
+> **API Changes**: 新增`/comments/review/` URL用于评论审核
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/apps/comments
+     - views.py               // refact 添加评论审核视图
+     - urls.py                // refact 添加评论审核URL模式
+   - blog/templates/comments
+     - review_comments.html   // add 评论审核页面模板
+   - blog/templates/base
+     - base.html              // refact 在导航栏添加审核评论链接
+   ```
+   
 ## {datetime: YYYY-MM-DD HH:mm:ss}
 
 ### 2025-05-01 01:23

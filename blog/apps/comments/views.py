@@ -97,3 +97,34 @@ def delete_comment(request, comment_id):
 
     # GET请求显示确认页面
     return render(request, "comments/comment_confirm_delete.html", {"comment": comment})
+
+
+@login_required
+def review_comments(request):
+    """审核评论视图"""
+    if not request.user.is_staff:
+        messages.error(request, _("您没有权限访问此页面！"))
+        return redirect("articles:home")
+
+    pending_comments = Comment.objects.filter(is_approved=False).order_by('-created_at')
+    approved_comments = Comment.objects.filter(is_approved=True).order_by('-created_at')
+
+    if request.method == "POST":
+        comment_id = request.POST.get('comment_id')
+        action = request.POST.get('action')
+        comment = get_object_or_404(Comment, id=comment_id)
+        
+        if action == 'approve':
+            comment.is_approved = True
+            comment.save()
+            messages.success(request, _("评论已通过审核！"))
+        elif action == 'reject':
+            comment.delete()
+            messages.success(request, _("评论已被拒绝并删除！"))
+
+        return redirect("comments:review_comments")
+
+    return render(request, "comments/review_comments.html", {
+        "pending_comments": pending_comments,
+        "approved_comments": approved_comments
+    })
