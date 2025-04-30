@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load markdown_filters %}
 
 {% block title %}
     {% if category %}{{ category.name }}{% elif tag %}标签: {{ tag.name }}{% else %}所有文章{% endif %} - Blog_OS
@@ -38,7 +39,7 @@
                                 <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
                             {% endfor %}
                         </div>
-                        <p class="card-text">{{ article.content|truncatewords:30 }}</p>
+                        <p class="card-text">{{ article.content|plain_text_preview:30 }}</p>
                         <a href="{{ article.get_absolute_url }}" class="btn btn-primary">阅读全文</a>
                     </div>
                 </article>

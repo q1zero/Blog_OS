@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.articles",
     "apps.comments",
+    "utils",
     # 第三方应用
     "rest_framework",
     "rest_framework_simplejwt",

@@ -57,6 +57,9 @@ root
         - comments   // 评论系统模块
     - config         // 配置目录（settings, urls, wsgi, asgi）
     - utils          // 通用工具函数
+        - templatetags       // 自定义模板标签和过滤器
+            - __init__.py    // 包初始化文件
+            - markdown_filters.py // Markdown文本处理过滤器
     - templates      // 模板目录
         - base       // 基础模板
         - articles   // 文章相关模板
@@ -125,6 +128,7 @@ root
 2. 文章列表展示（支持分类和标签过滤）
 3. 文章详情展示（支持Markdown渲染和代码高亮）
 4. 文章管理后台（支持文章、分类和标签的CRUD操作）
+5. 文章预览处理（去除Markdown格式符号，显示纯文本预览）
 
 **URL结构：**
 
@@ -134,15 +138,20 @@ root
 * `/articles/category/<slug>/` - 按分类过滤文章
 * `/articles/tag/<slug>/` - 按标签过滤文章
 
+### 工具模块
+
+工具模块提供了整个博客平台的通用功能和辅助工具。
+
+**主要组件：**
+
+1. **模板标签和过滤器**
+   * `markdown_filters.py`：处理Markdown文本的自定义过滤器
+     * `plain_text_preview`：将Markdown文本转换为纯文本预览，去除所有格式符号
+   * 应用场景：文章列表和首页的文章预览展示
+
 ## CI/CD 配置
 
 项目使用GitHub Actions实现持续集成和部署，包含以下工作流程：
-
-### PR自动审阅与合并工作流
-
-* **文件**: `.github/workflows/pr-auto-review.yml`
-* **用途**: 针对一般的PR进行代码检查、测试和自动审阅
-* **触发条件**: PR创建、更新、重新打开、标记和审阅提交
 
 ### Main分支PR合并自动化测试工作流
 
@@ -154,15 +163,6 @@ root
   2. 代码检查与基本测试
   3. 基本集成测试（确保Django项目能启动）
   4. 自动审批与合并
-
-### Main分支保护配置工作流
-
-* **文件**: `.github/workflows/main-branch-protection.yml`
-* **用途**: 自动配置和维护main分支的保护规则
-* **触发条件**: 手动触发或当工作流文件更新时
-* **主要功能**:
-  * 设置分支保护规则
-  * 创建CODEOWNERS文件（如果不存在）
 
 详细的CI/CD流程说明请参考 `docs/ci_cd_workflow.md`
 
