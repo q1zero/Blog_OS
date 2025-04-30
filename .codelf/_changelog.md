@@ -1,5 +1,33 @@
 ## {datetime: YYYY-MM-DD HH:mm:ss}
 
+### 2025-04-30 15:33
+
+### 4. 调整文章详情页和评论系统UI
+
+**Change Type**: improvement
+
+> **Purpose**: 优化文章详情页面和评论系统的交互体验
+> **Detailed Description**:
+>
+> 1. 将编辑/删除文章的按钮移到文章元数据行
+> 2. 将点赞和收藏按钮移到文章内容末尾
+> 3. 修改点赞按钮样式，与收藏按钮统一为浅色背景样式
+> 4. 将评论提交后的等待审核信息改为使用JS弹窗提示，替代浏览器的alert提示
+> 5. 将删除文章和评论的确认页面改为JS弹窗确认，通过AJAX请求处理删除操作
+> **Reason for Change**: 提升用户界面的一致性和交互体验，使用更现代的UI交互方式
+> **Impact Scope**: 影响文章详情页面和评论系统的显示与交互逻辑
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响，但改善了用户体验
+
+   ```text
+   root
+   - blog/templates/articles  
+     - detail.html           // refact 调整文章详情页UI布局和交互
+   - blog/templates/comments  
+     - comment.html          // refact 更新评论组件，添加JS确认弹窗和提示
+   ```
+
 ### 2025-04-30 14:45:00
 
 ### 3. 修复文章预览中Markdown格式符号显示问题
@@ -91,3 +119,205 @@
 
 - 配置GitHub Actions工作流：
   - 检测pr，并进行代码检查、测试和自动审阅
+
+## 修改记录
+
+### 2025-04-30 15:18
+
+- 添加:
+  - 文章创建和编辑功能
+    - 创建表单模板和视图
+    - 添加表单验证
+    - 支持Markdown编辑器
+    - 自动生成文章 slug
+  - 文章删除功能
+    - 添加删除确认页面
+    - 权限控制（只有作者可删除）
+  - 文章点赞和收藏功能
+    - 创建 Like 和 Favorite 模型
+    - 实现 AJAX 点赞和收藏功能
+    - 显示点赞和收藏数量
+  - 评论系统
+    - 创建评论模型（支持嵌套回复）
+    - 实现评论提交和删除功能
+    - 添加评论审核机制
+    - AJAX 评论交互
+
+- 修复:
+  - 修复文章详情页标签显示问题
+  - 改进文章列表页分页功能
+
+- 变更:
+  - 更新导航栏布局，添加创建文章按钮
+  - 改进用户界面，添加 Bootstrap Icons 支持
+
+### 2025-04-30 15:49
+
+- 添加:
+  - 基础项目结构
+  - 用户管理模块
+    - 自定义用户模型
+    - 用户认证（注册、登录、登出）
+  - 文章管理模块
+    - 文章、分类和标签模型
+    - 文章列表和详情页
+    - 首页布局和最新文章展示
+
+### 2025-04-30 15:33
+
+### 5. 修复回复评论无法删除的问题
+
+**Change Type**: fix
+
+> **Purpose**: 修复回复评论无法删除的问题
+> **Detailed Description**:
+>
+> 1. 在评论模板（comment.html）中为回复评论添加了删除确认弹窗
+> 2. 确保回复评论的删除按钮能正确触发删除确认弹窗
+> 3. 保持与主评论删除功能一致的用户体验
+> **Reason for Change**: 原先模板中只为主评论添加了删除确认弹窗，忽略了回复评论的删除弹窗
+> **Impact Scope**: 影响评论系统的删除功能
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无性能影响
+
+   ```text
+   root
+   - blog/templates/comments  
+     - comment.html          // fix 为回复评论添加删除确认弹窗
+   ```
+
+### 2025-04-30 15:45
+
+### 6. 改进文章界面与交互体验
+
+**Change Type**: improvement
+
+> **Purpose**: 改进首页文章预览、标签输入方式和别名处理
+> **Detailed Description**:
+>
+> 1. 在首页文章预览的卡片底部显示文章的点赞数和收藏数
+> 2. 将创建/编辑文章页面的标签选择器改为可交互的标签输入框
+>    - 引入Tagify.js库实现标签输入交互
+>    - 支持输入标签并按回车确认添加
+>    - 可以创建多个标签，用逗号分隔
+> 3. 优化文章别名(slug)处理
+>    - 别名字段可以留空
+>    - 如果用户未提供别名，自动使用数据库中的文章ID作为默认值
+> **Reason for Change**: 提升用户使用体验，简化标签输入操作，预览更多文章信息
+> **Impact Scope**: 影响首页文章显示和文章创建/编辑功能
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无
+
+   ```text
+   root
+   - blog/templates/articles  
+     - home.html             // refact 在文章预览卡片底部添加点赞和收藏计数
+     - article_form.html     // refact 将标签选择器改为标签输入框
+   - blog/apps/articles
+     - views.py              // refact 支持标签输入处理和文章ID作为默认别名
+   ```
+
+### 2025-04-30 16:08
+
+### 7. 修复中文标签无法显示的问题
+
+**Change Type**: fix
+
+> **Purpose**: 修复使用中文标签导致页面报错的问题
+> **Detailed Description**:
+>
+> 1. 修改Tag模型，使其slug字段自动使用数据库ID，无需手动指定
+> 2. 修改文章标签URL配置，使用tag_id替代tag_slug作为URL参数
+> 3. 更新所有相关模板，将标签链接从使用tag.slug改为使用tag.id
+> 4. 修改Article模型，优化slug字段处理，自动使用ID作为默认值
+> 5. 从ArticleForm中移除slug字段，完全使用自动生成的ID作为slug
+> **Reason for Change**: 解决中文标签引起的NoReverseMatch错误，URL模式只支持英文字母、数字等字符，不支持中文字符
+> **Impact Scope**: 影响标签系统和文章URL生成机制
+> **API Changes**: 标签URL从 `/articles/tag/<slug>/` 改为 `/articles/tag/<id>/`
+> **Configuration Changes**: 无
+> **Performance Impact**: 无
+
+   ```text
+   root
+   - blog/apps/articles
+     - models.py            // refact 修改Tag和Article模型，自动使用ID作为slug
+     - views.py             // refact 修改视图函数，使用tag_id参数
+     - urls.py              // refact 修改URL模式，使用int类型的tag_id
+   - blog/templates/articles
+     - home.html            // refact 更新标签链接，使用tag.id
+     - list.html            // refact 更新标签链接，使用tag.id
+     - detail.html          // refact 更新标签链接，使用tag.id
+   ```
+
+### 2025-04-30 16:12
+
+### 8. 移除文章创建表单中的slug输入框
+
+**Change Type**: improvement
+
+> **Purpose**: 统一使用数据库ID作为文章slug，简化用户操作
+> **Detailed Description**:
+>
+> 1. 删除文章创建/编辑表单中的slug输入框
+> 2. 移除从标题自动生成slug的JavaScript逻辑
+> 3. 确保所有文章统一使用数据库ID作为slug
+> **Reason for Change**: 为避免用户设置不合规的slug值，同时简化用户操作，统一使用数据库ID作为slug，保持系统一致性
+> **Impact Scope**: 影响文章创建和编辑页面的表单字段
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无
+
+   ```text
+   root
+   - blog/templates/articles
+     - article_form.html     // refact 移除slug输入框及相关生成逻辑
+   ```
+
+### 2025-04-30 16:14
+
+### 9. 在文章列表页添加点赞和收藏数量显示
+
+**Change Type**: improvement
+
+> **Purpose**: 在文章列表页展示文章获得的点赞和收藏数量
+> **Detailed Description**:
+>
+> 1. 在文章列表页的每篇文章预览卡片底部添加点赞和收藏数量显示
+> 2. 布局及样式与首页保持一致，使用图标和计数器组合展示
+> **Reason for Change**: 提升用户体验，使文章列表页与首页展示风格保持一致，为读者提供更丰富的信息
+> **Impact Scope**: 影响文章列表页的预览卡片显示
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无
+
+   ```text
+   root
+   - blog/templates/articles
+     - list.html             // refact 在文章列表页添加点赞和收藏数量显示
+   ```
+
+### 2025-04-30 16:17
+
+### 10. 隐藏文章数量为0的标签
+
+**Change Type**: improvement
+
+> **Purpose**: 在标签云中自动隐藏没有关联文章的标签
+> **Detailed Description**:
+>
+> 1. 修改home、article_list、article_create和article_update视图函数
+> 2. 使用Django ORM的annotate和filter功能来筛选有效标签
+> 3. 只显示至少关联了一篇文章的标签
+> **Reason for Change**: 提高标签云的有效性，减少无用标签的显示，避免用户点击空标签导致的不良体验
+> **Impact Scope**: 影响首页、文章列表页和文章表单页的标签云显示
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 稍微提高查询效率，减少标签云中显示的标签数量
+
+   ```text
+   root
+   - blog/apps/articles
+     - views.py               // refact 筛选有效标签，隐藏空标签
+   ```

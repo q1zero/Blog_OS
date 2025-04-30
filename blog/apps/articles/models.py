@@ -29,7 +29,7 @@ class Tag(models.Model):
     """文章标签模型"""
 
     name = models.CharField(_("标签名称"), max_length=50)
-    slug = models.SlugField(_("标签别名"), max_length=50, unique=True)
+    slug = models.SlugField(_("标签别名"), max_length=50, blank=True)
     created_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
     updated_at = models.DateTimeField(_("更新时间"), auto_now=True)
 
@@ -40,6 +40,16 @@ class Tag(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+    def save(self, *args, **kwargs):
+        # 如果没有设置slug，使用ID
+        if not self.slug and self.id:
+            self.slug = str(self.id)
+        super().save(*args, **kwargs)
+        # 如果创建后仍然没有slug（第一次保存），再次保存以设置slug
+        if not self.slug:
+            self.slug = str(self.id)
+            super().save(update_fields=["slug"])
 
 
 class Article(models.Model):
@@ -55,7 +65,7 @@ class Article(models.Model):
     )
 
     title = models.CharField(_("标题"), max_length=200)
-    slug = models.SlugField(_("别名"), max_length=200, unique=True)
+    slug = models.SlugField(_("别名"), max_length=200, unique=True, blank=True)
     content = models.TextField(_("内容"))
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -98,4 +108,67 @@ class Article(models.Model):
     def save(self, *args, **kwargs):
         if self.status == "published" and not self.published_at:
             self.published_at = timezone.now()
+        # 如果没有设置slug，使用ID
+        if not self.slug and self.id:
+            self.slug = str(self.id)
         super().save(*args, **kwargs)
+        # 如果创建后仍然没有slug（第一次保存），再次保存以设置slug
+        if not self.slug:
+            self.slug = str(self.id)
+            super().save(update_fields=["slug"])
+
+
+class Like(models.Model):
+    """文章点赞模型"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="likes",
+        verbose_name=_("用户"),
+    )
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.CASCADE,
+        related_name="likes",
+        verbose_name=_("文章"),
+    )
+    created_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("点赞")
+        verbose_name_plural = _("点赞")
+        # 确保用户只能对一篇文章点赞一次
+        unique_together = ("user", "article")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} 点赞了 {self.article.title}"
+
+
+class Favorite(models.Model):
+    """文章收藏模型"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name=_("用户"),
+    )
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name=_("文章"),
+    )
+    created_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("收藏")
+        verbose_name_plural = _("收藏")
+        # 确保用户只能收藏一篇文章一次
+        unique_together = ("user", "article")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} 收藏了 {self.article.title}"

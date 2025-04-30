@@ -1,0 +1,34 @@
+{% extends 'base/base.html' %}
+
+{% block title %}确认删除评论 | Blog_OS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h1 class="h3 mb-0">确认删除评论</h1>
+            </div>
+            <div class="card-body">
+                <p class="alert alert-warning">您确定要删除以下评论吗？此操作无法撤销！</p>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">{{ comment.author.username }} 在文章 "{{ comment.article.title }}" 中的评论</h6>
+                        <p class="card-text">{{ comment.content }}</p>
+                        <small class="text-muted">{{ comment.created_at|date:"Y-m-d H:i" }}</small>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'articles:article_detail' article_slug=comment.article.slug %}" class="btn btn-outline-secondary">取消</a>
+                        <button type="submit" class="btn btn-danger">确认删除</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
