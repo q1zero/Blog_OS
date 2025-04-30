@@ -1,0 +1,207 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if is_create %}创建文章{% else %}编辑文章 - {{ article.title }}{% endif %} | Blog_OS
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.17.9/dist/tagify.css">
+<style>
+    .CodeMirror {
+        height: 400px;
+    }
+    .editor-toolbar {
+        border-top-left-radius: 0.25rem;
+        border-top-right-radius: 0.25rem;
+    }
+    .CodeMirror {
+        border-bottom-left-radius: 0.25rem;
+        border-bottom-right-radius: 0.25rem;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    /* 标签输入样式 */
+    .tagify {
+        width: 100%;
+        max-width: 100%;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    .tagify--focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .tagify__tag {
+        background: #f0f0f0;
+        color: #212529;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h1 class="h3 mb-0">{% if is_create %}创建新文章{% else %}编辑文章{% endif %}</h1>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                        {{ form.title.errors }}
+                        <input type="text" class="form-control {% if form.title.errors %}is-invalid{% endif %}" id="{{ form.title.id_for_label }}" name="{{ form.title.html_name }}" value="{{ form.title.value|default:'' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">{{ form.content.label }}</label>
+                        {{ form.content.errors }}
+                        <textarea class="form-control {% if form.content.errors %}is-invalid{% endif %}" id="{{ form.content.id_for_label }}" name="{{ form.content.html_name }}">{{ form.content.value|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                        {{ form.category.errors }}
+                        <select class="form-select {% if form.category.errors %}is-invalid{% endif %}" id="{{ form.category.id_for_label }}" name="{{ form.category.html_name }}">
+                            <option value="" {% if not form.category.value %}selected{% endif %}>-- 选择分类 --</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if form.category.value|stringformat:'s' == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.tags_input.id_for_label }}" class="form-label">{{ form.tags_input.label }}</label>
+                        {{ form.tags_input.errors }}
+                        <input type="text" class="form-control {% if form.tags_input.errors %}is-invalid{% endif %}" id="{{ form.tags_input.id_for_label }}" name="{{ form.tags_input.html_name }}" value="{{ form.tags_input.value|default:'' }}">
+                        <div class="form-text">输入标签，用逗号分隔，按回车添加</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                            {{ form.status.errors }}
+                            <select class="form-select {% if form.status.errors %}is-invalid{% endif %}" id="{{ form.status.id_for_label }}" name="{{ form.status.html_name }}">
+                                {% for value, text in form.status.field.choices %}
+                                <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ text }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.visibility.id_for_label }}" class="form-label">{{ form.visibility.label }}</label>
+                            {{ form.visibility.errors }}
+                            <select class="form-select {% if form.visibility.errors %}is-invalid{% endif %}" id="{{ form.visibility.id_for_label }}" name="{{ form.visibility.html_name }}">
+                                {% for value, text in form.visibility.field.choices %}
+                                <option value="{{ value }}" {% if form.visibility.value == value %}selected{% endif %}>{{ text }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% if is_create %}{% url 'articles:article_list' %}{% else %}{% url 'articles:article_detail' article_slug=article.slug %}{% endif %}" class="btn btn-outline-secondary">取消</a>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.17.9/dist/tagify.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化Markdown编辑器
+        var simplemde = new SimpleMDE({
+            element: document.getElementById("{{ form.content.id_for_label }}"),
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                uniqueId: "article_editor",
+                delay: 1000,
+            },
+            renderingConfig: {
+                codeSyntaxHighlighting: true,
+            },
+            toolbar: [
+                "bold", "italic", "heading", "|", 
+                "quote", "unordered-list", "ordered-list", "|", 
+                "link", "image", "table", "code", "|",
+                "preview", "side-by-side", "fullscreen", "|",
+                "guide"
+            ]
+        });
+
+        // 初始化Tagify标签输入
+        var tagsInput = document.querySelector('input[name="{{ form.tags_input.html_name }}"]');
+        var tagifyInstance;
+        
+        if (tagsInput) {
+            // 将初始值按逗号分隔成数组
+            var initialTags = tagsInput.value.split(',').map(function(tag) {
+                return tag.trim();
+            }).filter(function(tag) {
+                return tag !== '';
+            });
+            
+            // 清空输入框，Tagify会根据whitelist重新设置值
+            tagsInput.value = '';
+            
+            // 初始化Tagify
+            tagifyInstance = new Tagify(tagsInput, {
+                delimiters: ',', // 标签分隔符
+                maxTags: 10,     // 最多允许10个标签
+                enforceWhitelist: false, // 不限制标签必须在白名单中
+                dropdown: {
+                    enabled: 0, // 关闭下拉选择
+                }
+            });
+            
+            // 添加初始标签
+            if (initialTags.length > 0) {
+                tagifyInstance.addTags(initialTags);
+            }
+            
+            // 重写表单提交前的处理方法，将Tagify的复杂数据结构转换为简单文本
+            document.querySelector('form').addEventListener('submit', function(e) {
+                if (tagifyInstance) {
+                    var tags = tagifyInstance.value;
+                    if (tags && tags.length > 0) {
+                        // 提取标签名称并用逗号连接
+                        var tagNames = tags.map(function(tag) {
+                            return tag.value;
+                        }).join(', ');
+                        
+                        // 重置标签输入字段的值为简单文本
+                        tagsInput.value = tagNames;
+                    }
+                }
+            });
+        }
+
+        // 从标题自动生成slug
+        const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+        
+        // 不再需要从标题自动生成slug的逻辑
+    });
+</script>
+{% endblock %} 

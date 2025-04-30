@@ -1,15 +1,54 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import markdown
 from markdown.extensions.toc import TocExtension
 from django.utils.text import slugify
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.contrib import messages
+from django.utils.translation import gettext_lazy as _
+import json
+import uuid
+import re
+from django.db import models
 
-from .models import Article, Category, Tag
+from .models import Article, Category, Tag, Like, Favorite
+from django import forms
 
 # Create your views here.
 
 
-def article_list(request, category_slug=None, tag_slug=None):
+class ArticleForm(forms.ModelForm):
+    """文章表单"""
+
+    # 自定义标签字段，不直接使用模型中的多对多字段
+    tags_input = forms.CharField(
+        label=_("标签"),
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "输入标签，按回车添加，可添加多个标签",
+            }
+        ),
+        help_text=_("输入标签名称并按回车确认，可添加多个标签"),
+    )
+
+    class Meta:
+        model = Article
+        fields = [
+            "title",
+            "content",
+            "category",
+            "status",
+            "visibility",
+        ]
+        widgets = {
+            "content": forms.Textarea(attrs={"rows": 20}),
+        }
+
+
+def article_list(request, category_slug=None, tag_id=None):
     """文章列表视图，支持分类和标签过滤"""
     articles = Article.objects.filter(status="published", visibility="public")
 
@@ -20,8 +59,8 @@ def article_list(request, category_slug=None, tag_slug=None):
         category = get_object_or_404(Category, slug=category_slug)
         articles = articles.filter(category=category)
 
-    if tag_slug:
-        tag = get_object_or_404(Tag, slug=tag_slug)
+    if tag_id:
+        tag = get_object_or_404(Tag, id=tag_id)
         articles = articles.filter(tags__in=[tag])
 
     # 分页
@@ -38,7 +77,10 @@ def article_list(request, category_slug=None, tag_slug=None):
 
     # 获取所有分类和标签，用于侧边栏
     categories = Category.objects.all()
-    tags = Tag.objects.all()
+    # 只获取至少关联了一篇文章的标签
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+        articles_count__gt=0
+    )
 
     return render(
         request,
@@ -52,6 +94,33 @@ def article_list(request, category_slug=None, tag_slug=None):
             "tags": tags,
         },
     )
+
+
+def generate_unique_slug(tag_name):
+    """生成唯一的标签slug，确保中文标签也能有有效的slug"""
+    # 尝试使用slugify处理
+    tag_slug = slugify(tag_name)
+
+    # 如果slugify后为空（例如纯中文标签），则使用随机字符串
+    if not tag_slug:
+        # 提取首字母或数字作为前缀
+        prefix = "".join(re.findall(r"[a-zA-Z0-9]", tag_name))
+        if not prefix:
+            prefix = "tag"  # 如果没有提取到任何字母或数字，使用默认前缀
+
+        # 添加随机字符串作为后缀
+        random_suffix = str(uuid.uuid4())[:8]
+        tag_slug = f"{prefix}-{random_suffix}"
+
+    # 检查是否已存在相同的slug
+    counter = 1
+    original_slug = tag_slug
+    while Tag.objects.filter(slug=tag_slug).exists():
+        # 如果已存在，添加数字后缀
+        tag_slug = f"{original_slug}-{counter}"
+        counter += 1
+
+    return tag_slug
 
 
 def article_detail(request, article_slug):
@@ -88,12 +157,37 @@ def article_detail(request, article_slug):
             .distinct()[:5]
         )
 
+    # 获取文章评论列表
+    from apps.comments.models import Comment
+
+    comments = Comment.objects.filter(
+        article=article, parent=None, is_approved=True
+    ).select_related("author")
+
+    # 为评论创建表单
+    from apps.comments.views import CommentForm
+
+    comment_form = CommentForm()
+
+    # 检查当前用户是否已经点赞和收藏
+    user_liked = False
+    user_favorited = False
+    if request.user.is_authenticated:
+        user_liked = Like.objects.filter(user=request.user, article=article).exists()
+        user_favorited = Favorite.objects.filter(
+            user=request.user, article=article
+        ).exists()
+
     return render(
         request,
         "articles/detail.html",
         {
             "article": article,
             "related_articles": related_articles,
+            "user_liked": user_liked,
+            "user_favorited": user_favorited,
+            "comments": comments,
+            "comment_form": comment_form,
         },
     )
 
@@ -107,7 +201,10 @@ def home(request):
 
     # 获取所有分类和标签，用于侧边栏
     categories = Category.objects.all()
-    tags = Tag.objects.all()
+    # 只获取至少关联了一篇文章的标签
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+        articles_count__gt=0
+    )
 
     return render(
         request,
@@ -118,3 +215,220 @@ def home(request):
             "tags": tags,
         },
     )
+
+
+@login_required
+def article_create(request):
+    """文章创建视图，要求用户登录"""
+    if request.method == "POST":
+        form = ArticleForm(request.POST)
+        if form.is_valid():
+            article = form.save(commit=False)
+            # 自动关联当前登录用户为作者
+            article.author = request.user
+            article.save()
+
+            # 处理标签输入
+            tags_input = form.cleaned_data.get("tags_input", "")
+            if tags_input:
+                try:
+                    # 尝试解析可能的JSON格式
+                    tags_data = json.loads(tags_input)
+                    # 如果是Tagify输出的格式，提取标签值
+                    tag_names = [
+                        tag.get("value", "").strip()
+                        for tag in tags_data
+                        if tag.get("value", "").strip()
+                    ]
+                except (json.JSONDecodeError, TypeError, AttributeError):
+                    # 如果不是JSON或解析失败，按传统方式处理（逗号分隔）
+                    tag_names = [t.strip() for t in tags_input.split(",") if t.strip()]
+
+                # 为每个标签名称创建或获取标签实例
+                for tag_name in tag_names:
+                    # 获取或创建标签
+                    tag, created = Tag.objects.get_or_create(name=tag_name)
+
+                    # 如果是新创建的标签，需要保存让其生成ID后自动设置slug
+                    if created:
+                        tag.save()
+
+                    # 添加标签到文章
+                    article.tags.add(tag)
+
+            messages.success(request, _("文章创建成功！"))
+            return redirect("articles:article_detail", article_slug=article.slug)
+    else:
+        form = ArticleForm()
+
+    categories = Category.objects.all()
+    # 只获取至少关联了一篇文章的标签
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+        articles_count__gt=0
+    )
+
+    return render(
+        request,
+        "articles/article_form.html",
+        {"form": form, "categories": categories, "tags": tags, "is_create": True},
+    )
+
+
+@login_required
+def article_update(request, article_slug):
+    """文章更新视图，要求用户登录"""
+    # 获取文章，不过滤状态和可见性，因为作者需要能编辑所有自己的文章
+    article = get_object_or_404(Article, slug=article_slug, author=request.user)
+
+    if request.method == "POST":
+        form = ArticleForm(request.POST, instance=article)
+        if form.is_valid():
+            article = form.save(commit=False)
+            # 如果发布状态变更为已发布，设置发布时间
+            if article.status == "published" and not article.published_at:
+                article.published_at = timezone.now()
+            article.save()
+
+            # 处理标签输入
+            tags_input = form.cleaned_data.get("tags_input", "")
+            if tags_input:
+                # 先清除现有标签
+                article.tags.clear()
+
+                try:
+                    # 尝试解析可能的JSON格式
+                    tags_data = json.loads(tags_input)
+                    # 如果是Tagify输出的格式，提取标签值
+                    tag_names = [
+                        tag.get("value", "").strip()
+                        for tag in tags_data
+                        if tag.get("value", "").strip()
+                    ]
+                except (json.JSONDecodeError, TypeError, AttributeError):
+                    # 如果不是JSON或解析失败，按传统方式处理（逗号分隔）
+                    tag_names = [t.strip() for t in tags_input.split(",") if t.strip()]
+
+                # 为每个标签名称创建或获取标签实例
+                for tag_name in tag_names:
+                    # 获取或创建标签
+                    tag, created = Tag.objects.get_or_create(name=tag_name)
+
+                    # 如果是新创建的标签，需要保存让其生成ID后自动设置slug
+                    if created:
+                        tag.save()
+
+                    # 添加标签到文章
+                    article.tags.add(tag)
+
+            messages.success(request, _("文章更新成功！"))
+            return redirect("articles:article_detail", article_slug=article.slug)
+    else:
+        # 将现有标签格式化为简单的逗号分隔字符串，不使用JSON格式
+        existing_tags = ", ".join([tag.name for tag in article.tags.all()])
+        form = ArticleForm(instance=article, initial={"tags_input": existing_tags})
+
+    categories = Category.objects.all()
+    # 只获取至少关联了一篇文章的标签
+    tags = Tag.objects.annotate(articles_count=models.Count("articles")).filter(
+        articles_count__gt=0
+    )
+
+    return render(
+        request,
+        "articles/article_form.html",
+        {
+            "form": form,
+            "article": article,
+            "categories": categories,
+            "tags": tags,
+            "is_create": False,
+        },
+    )
+
+
+@login_required
+def article_delete(request, article_slug):
+    """文章删除视图，要求用户登录"""
+    # 获取文章，确保只能删除自己的文章
+    article = get_object_or_404(Article, slug=article_slug, author=request.user)
+
+    if request.method == "POST":
+        article.delete()
+        messages.success(request, _("文章已成功删除！"))
+        return redirect("articles:article_list")
+
+    return render(request, "articles/article_confirm_delete.html", {"article": article})
+
+
+@login_required
+def toggle_like(request, article_slug):
+    """切换文章点赞状态"""
+    article = get_object_or_404(Article, slug=article_slug)
+    user = request.user
+
+    # 检查用户是否已经点赞过该文章
+    like, created = Like.objects.get_or_create(user=user, article=article)
+
+    # 如果已经点赞，则取消点赞
+    if not created:
+        like.delete()
+        action = "unlike"
+        message = _("已取消点赞！")
+    else:
+        action = "like"
+        message = _("点赞成功！")
+
+    # 如果是AJAX请求，返回JSON响应
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        from django.http import JsonResponse
+
+        likes_count = Like.objects.filter(article=article).count()
+        return JsonResponse(
+            {
+                "status": "success",
+                "action": action,
+                "message": message,
+                "likes_count": likes_count,
+            }
+        )
+
+    # 如果是普通请求，添加消息并重定向
+    messages.success(request, message)
+    return redirect("articles:article_detail", article_slug=article.slug)
+
+
+@login_required
+def toggle_favorite(request, article_slug):
+    """切换文章收藏状态"""
+    article = get_object_or_404(Article, slug=article_slug)
+    user = request.user
+
+    # 检查用户是否已经收藏过该文章
+    favorite, created = Favorite.objects.get_or_create(user=user, article=article)
+
+    # 如果已经收藏，则取消收藏
+    if not created:
+        favorite.delete()
+        action = "unfavorite"
+        message = _("已取消收藏！")
+    else:
+        action = "favorite"
+        message = _("收藏成功！")
+
+    # 如果是AJAX请求，返回JSON响应
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        from django.http import JsonResponse
+
+        favorites_count = Favorite.objects.filter(article=article).count()
+        return JsonResponse(
+            {
+                "status": "success",
+                "action": action,
+                "message": message,
+                "favorites_count": favorites_count,
+            }
+        )
+
+    # 如果是普通请求，添加消息并重定向
+    messages.success(request, message)
+    return redirect("articles:article_detail", article_slug=article.slug)

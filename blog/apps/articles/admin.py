@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from .models import Article, Category, Tag
+from .models import Article, Category, Tag, Like, Favorite
 
 # Register your models here.
 
@@ -53,3 +53,21 @@ class ArticleAdmin(admin.ModelAdmin):
         (_("分类和标签"), {"fields": ("category", "tags")}),
         (_("状态"), {"fields": ("status", "visibility", "published_at")}),
     )
+
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ("user", "article", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "article__title")
+    date_hierarchy = "created_at"
+    raw_id_fields = ("user", "article")
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ("user", "article", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "article__title")
+    date_hierarchy = "created_at"
+    raw_id_fields = ("user", "article")

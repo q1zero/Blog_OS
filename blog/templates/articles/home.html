@@ -34,13 +34,19 @@
                                 </p>
                                 <div class="mb-2">
                                     {% for tag in article.tags.all %}
-                                        <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                                        <a href="{% url 'articles:article_list_by_tag' tag.id %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
                                     {% endfor %}
                                 </div>
                                 <p class="card-text">{{ article.content|plain_text_preview:15 }}</p>
                             </div>
                             <div class="card-footer bg-transparent border-top-0">
-                                <a href="{{ article.get_absolute_url }}" class="btn btn-sm btn-outline-primary">阅读全文</a>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{{ article.get_absolute_url }}" class="btn btn-sm btn-outline-primary">阅读全文</a>
+                                    <small class="text-muted">
+                                        <i class="bi bi-heart"></i> {{ article.likes.count }}
+                                        <i class="bi bi-bookmark ms-2"></i> {{ article.favorites.count }}
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -83,7 +89,7 @@
             </div>
             <div class="card-body">
                 {% for tag in tags %}
-                    <a href="{% url 'articles:article_list_by_tag' tag.slug %}" class="btn btn-sm btn-outline-secondary m-1">
+                    <a href="{% url 'articles:article_list_by_tag' tag.id %}" class="btn btn-sm btn-outline-secondary m-1">
                         {{ tag.name }} <span class="badge bg-secondary">{{ tag.articles.count }}</span>
                     </a>
                 {% empty %}
