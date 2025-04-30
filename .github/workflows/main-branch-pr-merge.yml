@@ -195,9 +195,6 @@ jobs:
         run: |
           echo "开始自动合并PR #${{ github.event.pull_request.number }} 到main分支..."
           
-          # 使用仓库环境变量中的自定义令牌进行认证
-          gh auth login --with-token <<< "${{ secrets.CUSTOM_GITHUB_TOKEN }}"
-          
           # 设置Git用户信息
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
