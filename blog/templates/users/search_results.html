@@ -1,0 +1,199 @@
+{% extends "base/base.html" %}
+
+{% block title %}搜索结果 - {{ query }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">搜索结果: "{{ query }}"</h1>
+
+            <!-- 搜索表单 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" action="{% url 'users:search' %}" class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="输入关键词搜索...">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="type" class="form-select">
+                                <option value="all" {% if search_type == 'all' %}selected{% endif %}>全部</option>
+                                <option value="author" {% if search_type == 'author' %}selected{% endif %}>作者</option>
+                                <option value="article" {% if search_type == 'article' %}selected{% endif %}>文章</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100">搜索</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if not query %}
+                <div class="alert alert-info">请输入搜索关键词</div>
+            {% else %}
+                <!-- 作者搜索结果 -->
+                {% if search_type == 'all' or search_type == 'author' %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h2>作者 ({{ authors.paginator.count }})</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if authors %}
+                                <div class="row">
+                                    {% for author in authors %}
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-body d-flex flex-column">
+                                                    <div class="text-center mb-3">
+                                                        {% if author.avatar %}
+                                                            <img src="{{ author.avatar.url }}" alt="{{ author.username }}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                                                        {% else %}
+                                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 80px; height: 80px; margin: 0 auto;">
+                                                                {{ author.username|first|upper }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <h5 class="card-title text-center">{{ author.username }}</h5>
+                                                    {% if author.bio %}
+                                                        <p class="card-text text-muted small">{{ author.bio|truncatechars:100 }}</p>
+                                                    {% endif %}
+                                                    <div class="mt-auto text-center">
+                                                        <a href="{% url 'users:profile' author.username %}" class="btn btn-sm btn-outline-primary">查看资料</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- 作者分页 -->
+                                {% if authors.has_other_pages %}
+                                    <nav aria-label="作者分页" class="mt-4">
+                                        <ul class="pagination justify-content-center">
+                                            {% if authors.has_previous %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?q={{ query }}&type={{ search_type }}&authors_page={{ authors.previous_page_number }}&articles_page={{ articles.number }}">上一页</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">上一页</span>
+                                                </li>
+                                            {% endif %}
+
+                                            {% for i in authors.paginator.page_range %}
+                                                {% if authors.number == i %}
+                                                    <li class="page-item active">
+                                                        <span class="page-link">{{ i }}</span>
+                                                    </li>
+                                                {% else %}
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?q={{ query }}&type={{ search_type }}&authors_page={{ i }}&articles_page={{ articles.number }}">{{ i }}</a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {% if authors.has_next %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?q={{ query }}&type={{ search_type }}&authors_page={{ authors.next_page_number }}&articles_page={{ articles.number }}">下一页</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">下一页</span>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </nav>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-warning">没有找到匹配的作者</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- 文章搜索结果 -->
+                {% if search_type == 'all' or search_type == 'article' %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>文章 ({{ articles.paginator.count }})</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if articles %}
+                                {% for article in articles %}
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h3 class="card-title">
+                                                <a href="{% url 'articles:article_detail' article_slug=article.slug %}" class="text-decoration-none">{{ article.title }}</a>
+                                                {% if article.visibility == 'private' %}
+                                                    <span class="badge bg-warning text-dark">私密</span>
+                                                {% endif %}
+                                            </h3>
+                                            <div class="card-subtitle mb-2 text-muted">
+                                                <span>{{ article.created_at|date:"Y年m月d日" }}</span> |
+                                                <span>作者: <a href="{% url 'users:profile' article.author.username %}" class="text-decoration-none">{{ article.author.username }}</a></span>
+                                                {% if article.category %}
+                                                    | <a href="{% url 'articles:article_list_by_category' category_slug=article.category.slug %}" class="badge bg-secondary text-decoration-none">{{ article.category.name }}</a>
+                                                {% endif %}
+                                            </div>
+                                            <div class="card-text mb-2">
+                                                {{ article.content|truncatewords:30 }}
+                                            </div>
+                                            <div>
+                                                {% for tag in article.tags.all %}
+                                                    <a href="{% url 'articles:article_list_by_tag' tag_id=tag.id %}" class="badge bg-info text-decoration-none">{{ tag.name }}</a>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+
+                                <!-- 文章分页 -->
+                                {% if articles.has_other_pages %}
+                                    <nav aria-label="文章分页" class="mt-4">
+                                        <ul class="pagination justify-content-center">
+                                            {% if articles.has_previous %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?q={{ query }}&type={{ search_type }}&authors_page={{ authors.number }}&articles_page={{ articles.previous_page_number }}">上一页</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">上一页</span>
+                                                </li>
+                                            {% endif %}
+
+                                            {% for i in articles.paginator.page_range %}
+                                                {% if articles.number == i %}
+                                                    <li class="page-item active">
+                                                        <span class="page-link">{{ i }}</span>
+                                                    </li>
+                                                {% else %}
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?q={{ query }}&type={{ search_type }}&authors_page={{ authors.number }}&articles_page={{ i }}">{{ i }}</a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {% if articles.has_next %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?q={{ query }}&type={{ search_type }}&authors_page={{ authors.number }}&articles_page={{ articles.next_page_number }}">下一页</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">下一页</span>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </nav>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-warning">没有找到匹配的文章</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

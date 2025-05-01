@@ -11,6 +11,9 @@ urlpatterns = [
     path('login/', views.UserLoginView.as_view(), name='login'),
     path('logout/', views.user_logout, name='logout'),
 
+    # 搜索功能
+    path('search/', views.search, name='search'),
+
     # 用户个人信息相关URL - 注意顺序，先匹配特定路径，再匹配通用路径
     path('profile/edit/', views.UserProfileEditView.as_view(), name='profile_edit'),
     path('profile/change-avatar/', views.change_avatar, name='change_avatar'),
