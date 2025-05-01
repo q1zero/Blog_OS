@@ -10,10 +10,13 @@ from django.urls import reverse_lazy, reverse
 from django.views.generic import DetailView, UpdateView
 from django.http import HttpResponseRedirect, Http404
 from django.utils import timezone
+from django.db.models import Q
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 from .forms import UserRegisterForm, UserLoginForm, UserProfileForm, UserAvatarForm
 from .models import User, EmailVerification
 from .utils import send_verification_email, crop_and_resize_image
+from apps.articles.models import Article
 
 
 def register(request):
@@ -218,3 +221,71 @@ def password_change_done(request):
     """密码修改成功视图"""
     messages.success(request, _('密码修改成功！'))
     return redirect('users:profile', username=request.user.username)
+
+
+def search(request):
+    """搜索功能视图，支持搜索作者和文章"""
+    query = request.GET.get('q', '')
+    search_type = request.GET.get('type', 'all')
+
+    authors = []
+    articles = []
+
+    if query:
+        # 根据搜索类型执行不同的查询
+        if search_type == 'author' or search_type == 'all':
+            # 搜索作者
+            authors = User.objects.filter(
+                Q(username__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(bio__icontains=query)
+            ).distinct()
+
+        if search_type == 'article' or search_type == 'all':
+            # 搜索文章（仅搜索已发布且公开的文章）
+            articles = Article.objects.filter(
+                Q(status='published', visibility='public') &
+                (Q(title__icontains=query) |
+                Q(content__icontains=query))
+            ).distinct()
+
+            # 如果用户已登录，也包括他们自己的私密文章
+            if request.user.is_authenticated:
+                user_private_articles = Article.objects.filter(
+                    Q(status='published', visibility='private', author=request.user) &
+                    (Q(title__icontains=query) |
+                    Q(content__icontains=query))
+                ).distinct()
+
+                # 合并查询结果
+                articles = (articles | user_private_articles).distinct()
+
+    # 对作者结果进行分页
+    authors_paginator = Paginator(authors, 10)  # 每页10个作者
+    authors_page = request.GET.get('authors_page')
+    try:
+        paginated_authors = authors_paginator.page(authors_page)
+    except PageNotAnInteger:
+        paginated_authors = authors_paginator.page(1)
+    except EmptyPage:
+        paginated_authors = authors_paginator.page(authors_paginator.num_pages)
+
+    # 对文章结果进行分页
+    articles_paginator = Paginator(articles, 10)  # 每页10篇文章
+    articles_page = request.GET.get('articles_page')
+    try:
+        paginated_articles = articles_paginator.page(articles_page)
+    except PageNotAnInteger:
+        paginated_articles = articles_paginator.page(1)
+    except EmptyPage:
+        paginated_articles = articles_paginator.page(articles_paginator.num_pages)
+
+    context = {
+        'query': query,
+        'search_type': search_type,
+        'authors': paginated_authors,
+        'articles': paginated_articles,
+    }
+
+    return render(request, 'users/search_results.html', context)

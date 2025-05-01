@@ -40,6 +40,22 @@
                     </li>
                     {% endif %}
                 </ul>
+
+                <!-- 搜索表单 -->
+                <form class="d-flex me-3" action="{% url 'users:search' %}" method="get">
+                    <div class="input-group">
+                        <input class="form-control" type="search" name="q" placeholder="搜索作者或文章..." aria-label="Search">
+                        <select class="form-select" name="type" style="max-width: 100px;">
+                            <option value="all">全部</option>
+                            <option value="author">作者</option>
+                            <option value="article">文章</option>
+                        </select>
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+
                 <ul class="navbar-nav">
                     {% if request.user.is_authenticated %}
                     <li class="nav-item dropdown">
@@ -87,7 +103,7 @@
             {% endfor %}
         </div>
         {% endif %}
-        
+
         {% block content %}{% endblock %}
     </main>
 
