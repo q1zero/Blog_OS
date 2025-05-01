@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.articles",
     "apps.comments",
+    "apps.logs.apps.LogsConfig",  # 访问日志应用
     "utils",
     # 第三方应用
     "rest_framework",
@@ -56,6 +57,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # 自定义中间件
+    "apps.logs.middleware.AccessLogMiddleware",  # 访问日志中间件
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -217,5 +220,46 @@ DEFAULT_FROM_EMAIL = '2450310705@stu.tjise.edu.cn'
 
 # 站点URL，用于构建完整的URL
 SITE_URL = 'http://127.0.0.1:8000'
+
+# 日志配置
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/django.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'apps.logs': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 

@@ -27,6 +27,7 @@ urlpatterns = [
     path("", article_views.home, name="home"),
     path("users/", include("apps.users.urls", namespace="users")),
     path("comments/", include("apps.comments.urls", namespace="comments")),
+    path("logs/", include("apps.logs.urls", namespace="logs")),
 ]
 
 if settings.DEBUG:
