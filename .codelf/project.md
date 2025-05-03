@@ -16,6 +16,7 @@
 * djangorestframework>=3.14.0：RESTful API 支持
 * djangorestframework-simplejwt>=5.0：JWT 认证
 * markdown>=3.8：Markdown 渲染
+* drf-yasg>=1.21.7：Swagger API文档生成
 
 ## 开发环境
 
@@ -60,11 +61,20 @@ root
             - urls.py        // 评论URL配置
             - admin.py       // 评论管理配置
         - logs       // 访问日志模块
-            - models.py      // 访问日志模型
-            - middleware.py  // 访问日志中间件
+            - models.py      // 日志模型
+            - middleware.py  // 日志中间件
             - views.py       // 日志仪表盘视图
-            - urls.py        // 日志URL配置
-            - admin.py       // 日志管理界面
+    - api            // API应用
+        - serializers// API序列化器
+            - user_serializers.py    // 用户序列化器
+            - article_serializers.py // 文章序列化器
+            - comment_serializers.py // 评论序列化器
+        - views      // API视图
+            - user_views.py         // 用户API视图
+            - article_views.py      // 文章API视图
+            - comment_views.py      // 评论API视图
+        - permissions.py    // 自定义权限类
+        - urls.py           // API URL配置
     - config         // 配置目录（settings, urls, wsgi, asgi）
     - utils          // 通用工具函数
         - templatetags       // 自定义模板标签和过滤器

@@ -1,3 +1,41 @@
+## 2025-05-03 16:30
+
+### 17. 实现RESTful API接口
+
+**Change Type**: feature
+
+> **Purpose**: 实现符合RESTful风格的API接口，支持版本控制和Swagger文档
+> **Detailed Description**:
+>
+> 1. 创建API应用，实现用户、文章、评论等资源的RESTful接口
+> 2. 使用DRF实现API视图和序列化器
+> 3. 实现API版本控制，使用URL路径方式（/api/v1/...）
+> 4. 集成Swagger文档，提供API自动文档
+> 5. 实现JWT认证和权限控制
+> **Reason for Change**: 提供标准化的API接口，方便前端和移动端集成
+> **Impact Scope**: 新增API应用和接口，不影响现有功能
+> **API Changes**: 新增 `/api/v1/` 路径下的所有API接口
+> **Configuration Changes**: 在settings.py中添加了API应用和DRF配置
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/api                 // add 新增API应用
+     - serializers/          // add API序列化器
+       - user_serializers.py // add 用户序列化器
+       - article_serializers.py // add 文章序列化器
+       - comment_serializers.py // add 评论序列化器
+     - views/               // add API视图
+       - user_views.py      // add 用户API视图
+       - article_views.py   // add 文章API视图
+       - comment_views.py   // add 评论API视图
+     - permissions.py       // add 自定义权限类
+     - urls.py              // add API URL配置
+   - blog/config/settings.py // update 更新DRF配置
+   - blog/config/urls.py     // update 添加API URL
+   - requirements.txt        // update 添加drf-yasg依赖
+   ```
+
 ## 2025-05-01 16:30
 
 ### 16. 实现访问日志记录功能
