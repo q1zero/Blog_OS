@@ -93,6 +93,7 @@ class Article(models.Model):
     created_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
     updated_at = models.DateTimeField(_("更新时间"), auto_now=True)
     published_at = models.DateTimeField(_("发布时间"), null=True, blank=True)
+    views_count = models.PositiveIntegerField(_("浏览量"), default=0)
 
     class Meta:
         verbose_name = _("文章")
@@ -116,6 +117,11 @@ class Article(models.Model):
         if not self.slug:
             self.slug = str(self.pk)
             super().save(update_fields=["slug"])
+
+    def increase_views(self):
+        """增加文章浏览量"""
+        self.views_count += 1
+        self.save(update_fields=["views_count"])
 
 
 class Like(models.Model):
