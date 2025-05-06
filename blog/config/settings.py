@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.articles",
     "apps.comments",
-    "utils.logs.apps.LogsConfig",  # 访问日志应用
-    "utils.api.apps.ApiConfig",  # API应用
+    "utils.logs",  # 访问日志应用
+    "utils.api",  # API应用
     "utils",
     # 第三方应用
     "rest_framework",
