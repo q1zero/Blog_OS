@@ -206,12 +206,22 @@ def generate_unique_slug(tag_name):
 def article_detail(request, article_slug):
     """文章详情视图"""
     article = get_object_or_404(Article, slug=article_slug)
-    
+
     # 检查是否是文章作者，如果不是，则只能查看已发布且公开的文章
     if article.author != request.user:
         if article.status != "published" or article.visibility != "public":
             messages.error(request, _("您无权查看此文章！"))
             return redirect("articles:article_list")
+
+    # 增加文章浏览量
+    # 使用session避免刷新页面重复增加浏览量
+    session_key = f"viewed_article_{article.pk}"
+    if not request.session.get(session_key, False):
+        article.increase_views()
+        # 设置session标记，使得在一段时间内不重复计数
+        request.session[session_key] = True
+        # 设置过期时间为30分钟
+        request.session.set_expiry(1800)
 
     # 使用Markdown渲染文章内容
     md = markdown.Markdown(
@@ -532,7 +542,7 @@ def toggle_favorite(request, article_slug):
 def publish_article(request, article_slug):
     """发布草稿文章"""
     article = get_object_or_404(Article, slug=article_slug, author=request.user)
-    
+
     if article.status == "draft":
         article.status = "published"
         if not article.published_at:
@@ -541,5 +551,5 @@ def publish_article(request, article_slug):
         messages.success(request, _("文章已成功发布！"))
     else:
         messages.info(request, _("文章已经是发布状态！"))
-    
+
     return redirect("articles:article_detail", article_slug=article.slug)

@@ -138,6 +138,8 @@
                         <span>作者: {{ article.author.username }}</span>
                         <span class="mx-2">|</span>
                         <span>发布时间: {{ article.published_at|date:"Y年m月d日 H:i" }}</span>
+                        <span class="mx-2">|</span>
+                        <span>浏览量: {{ article.views_count }}次</span>
                         {% if article.category %}
                         <span class="mx-2">|</span>
                         <span>分类: <a href="{% url 'articles:article_list_by_category' article.category.slug %}" class="text-decoration-none">{{ article.category.name }}</a></span>
