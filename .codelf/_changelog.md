@@ -664,3 +664,34 @@
    - blog/templates/base
      - base.html              // refact 在导航栏添加收藏夹入口
    ```
+
+## 2025-05-06 16:21
+
+### 19. 实现文章和评论模块的单元测试
+
+**Change Type**: test
+
+> **Purpose**: 为文章管理模块和评论系统模块编写单元测试，确保代码质量和稳定性
+> **Detailed Description**:
+>
+> 1. 为文章模块实现了三个测试类：
+>    * ArticleModelTest：测试文章模型创建、字符串表示、URL、发布时间和浏览量增加等功能
+>    * ArticleViewTest：测试文章列表、详情、创建、更新和删除等视图功能
+>    * LikeFavoriteTest：测试点赞和收藏功能，包括点赞切换、收藏切换、多用户点赞和收藏夹功能
+> 2. 为评论模块实现了两个测试类：
+>    * CommentModelTest：测试评论模型创建、字符串表示、嵌套评论创建、评论排序和审核状态等功能
+>    * CommentViewTest：测试评论提交、评论回复、评论删除和权限控制等功能
+> 3. 每个测试类至少包含5个测试任务，共计26个测试任务
+> **Reason for Change**: 满足项目阶段四的开发任务，提高代码质量和稳定性
+> **Impact Scope**: 影响文章和评论模块的测试文件
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无
+
+   ```text
+   root
+   - blog/apps/articles
+     - tests.py              // update 实现文章模块的单元测试
+   - blog/apps/comments
+     - tests.py              // update 实现评论模块的单元测试
+   ```

@@ -319,6 +319,58 @@ root
      * `plain_text_preview`：将Markdown文本转换为纯文本预览，去除所有格式符号
    * 应用场景：文章列表和首页的文章预览展示
 
+## 测试说明
+
+项目包含完整的单元测试，覆盖了关键功能和组件。
+
+### 文章模块测试
+
+**文件位置**: `blog/apps/articles/tests.py`
+
+包含三个测试类：
+
+1. **ArticleModelTest**：测试文章模型的基本功能
+   * test_article_creation：测试文章创建和属性设置
+   * test_article_str_representation：测试文章的字符串表示
+   * test_article_get_absolute_url：测试文章的URL生成
+   * test_article_published_at：测试发布时间的自动设置
+   * test_article_increase_views：测试浏览量增加功能
+
+2. **ArticleViewTest**：测试文章相关视图功能
+   * test_article_list_view：测试文章列表视图
+   * test_article_detail_view：测试文章详情视图
+   * test_article_detail_view_private：测试私密文章访问权限
+   * test_article_create_view：测试文章创建功能
+   * test_article_update_view：测试文章更新功能
+   * test_article_delete_view：测试文章删除功能
+
+3. **LikeFavoriteTest**：测试点赞和收藏功能
+   * test_toggle_like：测试点赞切换功能
+   * test_toggle_favorite：测试收藏切换功能
+   * test_user_can_like_multiple_articles：测试用户可以点赞多篇文章
+   * test_multiple_users_can_like_same_article：测试多用户可以点赞同一篇文章
+   * test_my_favorites_view：测试我的收藏夹视图
+
+### 评论模块测试
+
+**文件位置**: `blog/apps/comments/tests.py`
+
+包含两个测试类：
+
+1. **CommentModelTest**：测试评论模型的基本功能
+   * test_comment_creation：测试评论创建和属性设置
+   * test_comment_str_representation：测试评论的字符串表示
+   * test_nested_comment_creation：测试嵌套评论创建
+   * test_comment_ordering：测试评论排序
+   * test_comment_approval_status：测试评论审核状态
+
+2. **CommentViewTest**：测试评论相关视图功能
+   * test_add_comment：测试添加评论功能
+   * test_add_reply：测试添加回复功能
+   * test_delete_comment：测试删除评论功能
+   * test_delete_other_user_comment：测试评论删除权限控制
+   * test_comment_approval：测试评论审核状态变更
+
 ## CI/CD 配置
 
 项目使用GitHub Actions实现持续集成和部署，包含以下工作流程：
