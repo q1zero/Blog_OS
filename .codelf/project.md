@@ -17,6 +17,7 @@
 * djangorestframework-simplejwt>=5.0：JWT 认证
 * markdown>=3.8：Markdown 渲染
 * drf-yasg>=1.21.7：Swagger API文档生成
+* django-debug-toolbar>=5.2.0：调试和性能分析工具
 
 ## 开发环境
 
@@ -199,14 +200,19 @@ root
 
 1. 网站首页展示（按发布时间展示最新的文章）
    * 在文章预览卡片底部显示点赞数和收藏数
+   * 使用缓存优化性能，减少数据库查询
 2. 文章列表展示（支持分类和标签过滤）
+   * 使用select_related和prefetch_related预加载关联数据，减少数据库查询次数
 3. 文章详情展示（支持Markdown渲染和代码高亮）
+   * 预加载评论及其作者数据，优化加载性能
+   * 使用会话机制避免浏览量重复计数
 4. 文章管理功能（支持创建、编辑和删除）
    * 编辑/删除文章按钮放置在文章元数据行，提升UI一致性
    * 删除文章采用JS弹窗确认，无需跳转确认页面
    * 创建/编辑表单支持标签输入框，通过回车或逗号分隔添加多个标签
    * 文章别名（slug）支持留空，自动使用数据库ID作为默认值
 5. 文章状态和可见性控制（草稿/发布，公开/私密）
+   * 添加复合索引优化按状态和可见性查询的性能
 6. 文章点赞和收藏功能（支持AJAX交互）
    * 点赞/收藏按钮统一样式，放置在文章内容末尾
    * 点赞按钮使用浅色背景样式，与收藏按钮风格统一
@@ -370,6 +376,100 @@ root
    * test_delete_comment：测试删除评论功能
    * test_delete_other_user_comment：测试评论删除权限控制
    * test_comment_approval：测试评论审核状态变更
+
+## 性能优化
+
+为了提高应用程序的性能和用户体验，我们实施了多种优化手段，特别是针对数据库查询：
+
+### 数据库查询优化
+
+1. **使用select_related和prefetch_related减少查询次数**
+   * 在文章列表视图中预加载作者和分类数据
+
+   ```python
+   articles = Article.objects.select_related('author', 'category').prefetch_related('tags')
+   ```
+
+   * 在文章详情视图中预加载所有相关数据
+
+   ```python
+   article = Article.objects.select_related('author', 'category').prefetch_related(
+       'tags', 'comments__author', 'comments__replies__author')
+   ```
+
+   * 在评论审核视图中预加载作者和文章数据
+
+   ```python
+   comments = Comment.objects.select_related('author', 'article')
+   ```
+
+2. **添加数据库索引**
+   * 为文章模型的关键字段添加索引
+
+   ```python
+   class Article(models.Model):
+       author = models.ForeignKey(..., db_index=True)
+       status = models.CharField(..., db_index=True)
+       # ...其他字段
+       class Meta:
+           indexes = [
+               models.Index(fields=["author", "status"], name="author_status_idx"),
+               models.Index(fields=["status", "visibility"], name="status_visibility_idx"),
+           ]
+   ```
+
+   * 为评论模型添加索引，优化评论加载和审核
+
+   ```python
+   class Comment(models.Model):
+       article = models.ForeignKey(..., db_index=True)
+       is_approved = models.BooleanField(..., db_index=True)
+       # ...其他字段
+       class Meta:
+           indexes = [
+               models.Index(fields=["article", "is_approved"], name="article_approved_idx"),
+           ]
+   ```
+
+3. **实施缓存策略**
+   * 配置内存缓存后端
+
+   ```python
+   CACHES = {
+       'default': {
+           'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+           'LOCATION': 'unique-snowflake',
+       }
+   }
+   CACHE_TTL = 60 * 15  # 15分钟
+   ```
+
+   * 为频繁访问的视图添加缓存装饰器
+
+   ```python
+   @cache_page(CACHE_TTL)
+   def home(request):
+       # 首页视图
+   ```
+
+4. **查询结果限制**
+   * 限制不必要的大量数据查询
+
+   ```python
+   approved_comments = Comment.objects.select_related('author', 'article').filter(is_approved=True)[:50]
+   ```
+
+   * 使用分页减少每页数据量
+
+   ```python
+   paginator = Paginator(articles, 10)  # 每页10篇文章
+   ```
+
+5. **性能监控工具**
+   * 集成Django Debug Toolbar，监控查询性能
+   * 配置工具显示SQL查询、缓存操作和请求处理时间
+
+这些优化措施共同作用，显著提高了网站性能，特别是在数据量增长后。
 
 ## CI/CD 配置
 

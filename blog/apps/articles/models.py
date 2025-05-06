@@ -72,6 +72,7 @@ class Article(models.Model):
         on_delete=models.CASCADE,
         related_name="articles",
         verbose_name=_("作者"),
+        db_index=True,
     )
     category = models.ForeignKey(
         Category,
@@ -80,25 +81,40 @@ class Article(models.Model):
         blank=True,
         related_name="articles",
         verbose_name=_("分类"),
+        db_index=True,
     )
     tags = models.ManyToManyField(
         Tag, blank=True, related_name="articles", verbose_name=_("标签")
     )
     status = models.CharField(
-        _("状态"), max_length=10, choices=STATUS_CHOICES, default="draft"
+        _("状态"),
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="draft",
+        db_index=True,
     )
     visibility = models.CharField(
-        _("可见性"), max_length=10, choices=VISIBILITY_CHOICES, default="public"
+        _("可见性"),
+        max_length=10,
+        choices=VISIBILITY_CHOICES,
+        default="public",
+        db_index=True,
     )
-    created_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    created_at = models.DateTimeField(_("创建时间"), auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(_("更新时间"), auto_now=True)
-    published_at = models.DateTimeField(_("发布时间"), null=True, blank=True)
-    views_count = models.PositiveIntegerField(_("浏览量"), default=0)
+    published_at = models.DateTimeField(
+        _("发布时间"), null=True, blank=True, db_index=True
+    )
+    views_count = models.PositiveIntegerField(_("浏览量"), default=0, db_index=True)
 
     class Meta:
         verbose_name = _("文章")
         verbose_name_plural = _("文章")
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["author", "status"], name="author_status_idx"),
+            models.Index(fields=["status", "visibility"], name="status_visibility_idx"),
+        ]
 
     def __str__(self):
         return str(self.title)

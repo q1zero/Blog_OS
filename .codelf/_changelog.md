@@ -1,3 +1,50 @@
+## 2025-05-06 16:50
+
+### 19. 数据库查询性能优化
+
+**Change Type**: enhancement, performance
+
+> **Purpose**: 优化数据库查询性能，减少数据库查询次数，提高响应速度
+> **Detailed Description**:
+>
+> 1. 使用 select_related 和 prefetch_related 优化多个视图，减少数据库查询次数
+>    * 在文章列表视图中预加载作者和分类数据
+>    * 在文章详情视图中预加载作者、分类、标签和评论数据
+>    * 在评论审核视图中预加载作者和文章数据
+> 2. 为模型添加数据库索引，提高查询速度
+>    * 为文章模型添加单字段索引（author、category、status、visibility等）
+>    * 为文章模型添加复合索引（author+status、status+visibility）
+>    * 为评论模型添加单字段索引（author、article、parent等）
+>    * 为评论模型添加复合索引（article+is_approved）
+> 3. 实施查询缓存，减少频繁访问的数据库查询
+>    * 配置LocMemCache内存缓存后端
+>    * 为首页和文章列表视图添加缓存装饰器
+>    * 设置15分钟的缓存过期时间
+> 4. 其他优化措施
+>    * 限制评论查询结果数量
+>    * 所有列表视图使用分页
+>    * 使用会话控制文章浏览量重复计数
+> **Reason for Change**: 提高网站性能，减轻数据库负载，改善用户体验
+> **Impact Scope**: 影响文章和评论模块的模型和视图，以及全局缓存配置
+> **API Changes**: 无
+> **Configuration Changes**: 在settings.py中添加了缓存配置
+> **Performance Impact**: 显著减少数据库查询次数，提高页面加载速度
+
+   ```text
+   root
+   - blog/apps/articles
+     - models.py              // update 添加数据库索引和复合索引
+     - views.py               // update 使用select_related和prefetch_related优化查询，添加缓存装饰器
+     - migrations/            // add 添加索引的数据库迁移文件
+   - blog/apps/comments
+     - models.py              // update 添加数据库索引和复合索引
+     - views.py               // update 使用select_related优化评论查询
+     - migrations/            // add 添加索引的数据库迁移文件
+   - blog/config
+     - settings.py            // update 添加缓存配置
+   - README.md                // update 添加数据库查询优化文档
+   ```
+
 ## 2025-05-08 15:30
 
 ### 18. 添加文章浏览量计数功能和优化响应式布局

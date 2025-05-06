@@ -49,11 +49,13 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "markdown",
     "drf_yasg",  # Swagger文档
+    "debug_toolbar",  # Django Debug Toolbar
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",  # Debug Toolbar中间件
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -226,58 +228,79 @@ SIMPLE_JWT = {
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # 生产环境使用SMTP后端
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.tjise.edu.cn'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "mail.tjise.edu.cn"
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True  # 注意：端口465通常使用SSL而非TLS
-EMAIL_HOST_USER = '2450310705@stu.tjise.edu.cn'
-EMAIL_HOST_PASSWORD = 'ZbpRDBa1d7Kzjpqy'
+EMAIL_HOST_USER = "2450310705@stu.tjise.edu.cn"
+EMAIL_HOST_PASSWORD = "ZbpRDBa1d7Kzjpqy"
 
 # 默认发件人邮箱
-DEFAULT_FROM_EMAIL = '2450310705@stu.tjise.edu.cn'
+DEFAULT_FROM_EMAIL = "2450310705@stu.tjise.edu.cn"
 
 # 站点URL，用于构建完整的URL
-SITE_URL = 'http://127.0.0.1:8000'
+SITE_URL = "http://127.0.0.1:8000"
+
+# 缓存配置
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
+
+# 缓存过期时间设置
+CACHE_TTL = 60 * 15  # 15分钟
 
 # 日志配置
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/django.log',
-            'formatter': 'verbose',
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
         },
-        'apps.logs': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "logs/django.log",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "apps.logs": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
 
+# Django Debug Toolbar配置
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
+# Debug Toolbar设置
+DEBUG_TOOLBAR_CONFIG = {
+    # 默认隐藏工具栏，只在URL中添加__debug__=true参数时才显示
+    "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG
+    and request.GET.get("__debug__", "") == "true",
+}

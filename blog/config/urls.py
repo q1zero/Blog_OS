@@ -28,10 +28,14 @@ urlpatterns = [
     path("users/", include("apps.users.urls", namespace="users")),
     path("comments/", include("apps.comments.urls", namespace="comments")),
     path("logs/", include("utils.logs.urls", namespace="logs")),
-
     # API URLs
     path("api/", include("utils.api.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    import debug_toolbar
+
+    urlpatterns += [
+        path("__debug__/", include(debug_toolbar.urls)),
+    ]

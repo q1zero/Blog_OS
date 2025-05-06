@@ -12,4 +12,5 @@ dependencies = [
     "pillow>=11.2.1",
     "pymysql",
     "drf-yasg>=1.21.7",
+    "django-debug-toolbar>=5.2.0",
 ]

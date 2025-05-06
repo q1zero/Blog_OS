@@ -182,8 +182,17 @@ def review_comments(request):
         messages.error(request, _("您没有权限访问此页面！"))
         return redirect("articles:home")
 
-    pending_comments = Comment.objects.filter(is_approved=False).order_by("-created_at")
-    approved_comments = Comment.objects.filter(is_approved=True).order_by("-created_at")
+    # 使用select_related预加载评论相关的作者和文章数据
+    pending_comments = (
+        Comment.objects.select_related("author", "article")
+        .filter(is_approved=False)
+        .order_by("-created_at")
+    )
+    approved_comments = (
+        Comment.objects.select_related("author", "article")
+        .filter(is_approved=True)
+        .order_by("-created_at")[:50]
+    )  # 限制已审核评论数量
 
     if request.method == "POST":
         comment_id = request.POST.get("comment_id")
