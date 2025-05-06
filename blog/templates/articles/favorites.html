@@ -1,0 +1,270 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load markdown_filters %}
+
+{% block title %}
+    我的收藏夹 - Blog_OS
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.4);
+    }
+    .delete-modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #28a745;
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: none;
+        z-index: 1050;
+    }
+    .empty-favorites {
+        text-align: center;
+        padding: 50px 0;
+    }
+    .favorite-icon {
+        font-size: 3rem;
+        color: #ffc107;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>我的收藏夹</h1>
+            <div class="btn-group">
+                <a href="{% url 'articles:my_published_articles' %}" class="btn btn-outline-primary">我的已发布文章</a>
+                <a href="{% url 'articles:my_draft_articles' %}" class="btn btn-outline-secondary">我的草稿箱</a>
+            </div>
+        </div>
+        
+        {% if articles %}
+            {% for article in articles %}
+                <article class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <a href="{{ article.get_absolute_url }}" class="text-decoration-none text-dark">{{ article.title }}</a>
+                        </h2>
+                        <p class="card-text text-muted">
+                            <small>
+                                由 {{ article.author.username }} 发布于 {{ article.published_at|date:"Y年m月d日" }}
+                                {% if article.category %}
+                                    | 分类: <a href="{% url 'articles:article_list_by_category' article.category.slug %}" class="text-decoration-none">{{ article.category.name }}</a>
+                                {% endif %}
+                            </small>
+                        </p>
+                        <div class="mb-2">
+                            {% for tag in article.tags.all %}
+                                <a href="{% url 'articles:article_list_by_tag' tag.id %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                            {% endfor %}
+                        </div>
+                        <p class="card-text">{{ article.content|plain_text_preview:30 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ article.get_absolute_url }}" class="btn btn-primary">阅读全文</a>
+                            <div>
+                                <button 
+                                    class="btn btn-sm {% if article.user_favorited %}btn-warning{% else %}btn-outline-warning{% endif %} favorite-btn"
+                                    data-article-slug="{{ article.slug }}"
+                                    onclick="toggleFavorite(this, '{{ article.slug }}')"
+                                >
+                                    <i class="bi {% if article.user_favorited %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
+                                    <span>取消收藏</span>
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-heart"></i> {{ article.likes.count }}
+                                <i class="bi bi-bookmark ms-2"></i> {{ article.favorites.count }}
+                            </small>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+            
+            <!-- 分页 -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% else %}
+            <div class="empty-favorites">
+                <div class="favorite-icon">
+                    <i class="bi bi-bookmark"></i>
+                </div>
+                <h3>您的收藏夹还是空的</h3>
+                <p class="text-muted">浏览文章并点击收藏按钮，将喜欢的文章添加到收藏夹</p>
+                <a href="{% url 'articles:article_list' %}" class="btn btn-primary mt-3">
+                    <i class="bi bi-search"></i> 浏览文章
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">我的文章管理</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{% url 'articles:article_create' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-plus-circle"></i> 创建新文章
+                    </a>
+                    <a href="{% url 'articles:my_published_articles' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-file-earmark-text"></i> 我的已发布文章
+                    </a>
+                    <a href="{% url 'articles:my_draft_articles' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-file-earmark"></i> 我的草稿箱
+                    </a>
+                    <a href="{% url 'articles:my_favorites' %}" class="list-group-item list-group-item-action active">
+                        <i class="bi bi-bookmark-heart"></i> 我的收藏夹
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">收藏小贴士</h5>
+            </div>
+            <div class="card-body">
+                <p><i class="bi bi-info-circle"></i> 您可以在阅读文章时点击"收藏"按钮，将文章添加到收藏夹。</p>
+                <p><i class="bi bi-info-circle"></i> 在此页面可以管理所有收藏的文章，也可以直接取消收藏。</p>
+                <p><i class="bi bi-info-circle"></i> 收藏的文章会按照收藏时间排序，最新收藏的文章会显示在前面。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通知提示 -->
+<div id="notification" class="notification"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 显示通知
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        
+        // 根据消息类型设置背景颜色
+        if (type === 'success') {
+            notification.style.backgroundColor = '#28a745';
+        } else if (type === 'error') {
+            notification.style.backgroundColor = '#dc3545';
+        } else if (type === 'info') {
+            notification.style.backgroundColor = '#17a2b8';
+        }
+        
+        // 显示通知
+        notification.style.display = 'block';
+        
+        // 3秒后自动隐藏
+        setTimeout(function() {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+    
+    // 切换收藏状态
+    function toggleFavorite(button, articleSlug) {
+        fetch(`/articles/favorite/${articleSlug}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.action === 'unfavorite') {
+                    // 如果是在收藏夹页面，移除整个文章卡片
+                    const articleCard = button.closest('article');
+                    articleCard.style.transition = 'opacity 0.5s ease';
+                    articleCard.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        articleCard.remove();
+                        
+                        // 检查是否还有文章
+                        const articles = document.querySelectorAll('.card.mb-4');
+                        if (articles.length === 0) {
+                            location.reload(); // 刷新页面以显示空收藏夹提示
+                        }
+                    }, 500);
+                    
+                    showNotification(data.message);
+                }
+            } else {
+                showNotification('操作失败，请重试！', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('操作过程中发生错误，请重试！', 'error');
+        });
+    }
+</script>
+{% endblock %} 

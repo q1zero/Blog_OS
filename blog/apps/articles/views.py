@@ -553,3 +553,49 @@ def publish_article(request, article_slug):
         messages.info(request, _("文章已经是发布状态！"))
 
     return redirect("articles:article_detail", article_slug=article.slug)
+
+
+@login_required
+def my_favorites(request):
+    """用户收藏夹视图，显示用户收藏的所有文章"""
+    # 获取用户收藏的所有文章
+    favorite_articles = (
+        Article.objects.filter(favorites__user=request.user)
+        .select_related("author", "category")
+        .prefetch_related("tags")
+    )
+
+    # 对文章进行分页
+    paginator = Paginator(favorite_articles, 10)  # 每页显示 10 篇文章
+    page_number = request.GET.get("page", 1)
+
+    try:
+        page_obj = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    # 为每篇文章添加点赞和收藏状态
+    for article in page_obj:
+        article.user_liked = (
+            True
+            if request.user.is_authenticated
+            and Like.objects.filter(user=request.user, article=article).exists()
+            else False
+        )
+
+        article.user_favorited = (
+            True
+            if request.user.is_authenticated
+            and Favorite.objects.filter(user=request.user, article=article).exists()
+            else False
+        )
+
+    return render(
+        request,
+        "articles/favorites.html",
+        {
+            "page_obj": page_obj,
+            "articles": page_obj.object_list,
+            "is_favorites": True,
+        },
+    )

@@ -36,6 +36,7 @@
                         <ul class="dropdown-menu" aria-labelledby="myArticlesDropdown">
                             <li><a class="dropdown-item" href="{% url 'articles:my_published_articles' %}">已发布</a></li>
                             <li><a class="dropdown-item" href="{% url 'articles:my_draft_articles' %}">草稿箱</a></li>
+                            <li><a class="dropdown-item" href="{% url 'articles:my_favorites' %}">我的收藏夹</a></li>
                         </ul>
                     </li>
                     {% endif %}
