@@ -91,7 +91,6 @@ celerybeat.pid
 .env.production.local
 
 # 日志文件 #
-logs/
 *.log
 
 # Node modules (如果项目前端使用了Node.js) #

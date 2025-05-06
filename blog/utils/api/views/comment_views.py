@@ -1,12 +1,10 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 
 from apps.comments.models import Comment
-from apps.articles.models import Article
-from api.serializers.comment_serializers import CommentSerializer, CommentCreateSerializer
-from api.permissions import IsOwnerOrReadOnly, IsAdminOrStaffUser
+from utils.api.serializers.comment_serializers import CommentSerializer, CommentCreateSerializer
+from utils.api.permissions import IsOwnerOrReadOnly, IsAdminOrStaffUser
 
 
 class CommentViewSet(viewsets.ModelViewSet):
