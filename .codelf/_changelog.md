@@ -396,7 +396,7 @@
   
 * 代码实现位置：
 
-- 修复文章预览中Markdown格式符号显示问题：
+* 修复文章预览中Markdown格式符号显示问题：
   * 创建自定义模板过滤器`plain_text_preview`，去除Markdown格式符号
   * 过滤器可以处理各种Markdown元素（标题、加粗、链接等）
   * 在首页和文章列表页使用该过滤器，提供更好的阅读体验
@@ -629,3 +629,38 @@
 * 更新自动合并PR功能，使用自定义令牌CUSTOM_GITHUB_TOKEN替代默认的GITHUB_TOKEN
 * 使用仓库环境变量CUSTOM_GITHUB_TOKEN获取权限进行合并操作
 * 只有非草稿状态的PR才会被自动合并
+
+## 2025-05-06 15:40
+
+### 19. 添加用户收藏夹功能
+
+**Change Type**: feature, enhancement
+
+> **Purpose**: 实现用户收藏夹功能，使用户可以查看和管理所有收藏的文章
+> **Detailed Description**:
+>
+> 1. 新增收藏夹功能，允许用户在一个集中的页面查看和管理所有收藏的文章
+> 2. 实现了以下主要功能：
+>    * 新增`my_favorites`视图，获取用户收藏的所有文章并显示
+>    * 创建`favorites.html`模板，美观展示收藏的文章列表
+>    * 在导航栏的"我的文章"下拉菜单中添加"我的收藏夹"入口
+>    * 支持在收藏夹页面直接取消收藏，并提供平滑的动画过渡效果
+>    * 提供空收藏夹的友好提示和引导用户浏览文章
+>    * 添加收藏小贴士，指导用户如何使用收藏功能
+> 3. 优化URL结构，添加`/articles/my/favorites/`路径
+> **Reason for Change**: 提升用户体验，方便用户管理和访问喜欢的文章内容
+> **Impact Scope**: 影响文章管理模块，添加新的视图、URL和模板
+> **API Changes**: 新增`/articles/my/favorites/` URL用于访问收藏夹
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响，采用了数据库优化查询方式（select_related和prefetch_related）
+
+   ```text
+   root
+   - blog/apps/articles
+     - views.py               // refact 添加my_favorites视图函数
+     - urls.py                // refact 添加my_favorites URL路由
+   - blog/templates/articles
+     - favorites.html         // add 新增收藏夹页面模板
+   - blog/templates/base
+     - base.html              // refact 在导航栏添加收藏夹入口
+   ```
