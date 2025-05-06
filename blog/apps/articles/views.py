@@ -12,11 +12,17 @@ import uuid
 import re
 from django.db import models
 from typing import Any, Optional, cast  # 添加类型提示导入
+from django.views.decorators.cache import cache_page
+from django.conf import settings
+from django.core.cache import cache
 
 from .models import Article, Category, Tag, Like, Favorite
 from django import forms
 
 # Create your views here.
+
+# 获取缓存过期时间
+CACHE_TTL = getattr(settings, "CACHE_TTL", 60 * 15)  # 默认15分钟
 
 
 class ArticleForm(forms.ModelForm):
@@ -49,10 +55,16 @@ class ArticleForm(forms.ModelForm):
         }
 
 
+@cache_page(CACHE_TTL)
 def article_list(request, category_slug=None, tag_id=None):
     """文章列表视图，支持分类和标签过滤"""
     # 忽略类型检查器的Django ORM错误
-    articles = Article.objects.filter(status="published", visibility="public")  # type: ignore
+    # 使用select_related加载author和category，减少数据库查询
+    articles = (
+        Article.objects.select_related("author", "category")
+        .prefetch_related("tags")
+        .filter(status="published", visibility="public")
+    )  # type: ignore
 
     category = None
     tag = None
@@ -102,7 +114,12 @@ def article_list(request, category_slug=None, tag_id=None):
 def my_published_articles(request):
     """显示当前用户的已发布文章，包括公开和私密"""
     # 获取当前用户的已发布文章，不论可见性
-    articles = Article.objects.filter(author=request.user, status="published")  # type: ignore
+    # 使用select_related加载category，减少数据库查询
+    articles = (
+        Article.objects.select_related("category")
+        .prefetch_related("tags")
+        .filter(author=request.user, status="published")
+    )  # type: ignore
 
     # 分页
     paginator = Paginator(articles, 10)  # 每页显示10篇文章
@@ -141,7 +158,12 @@ def my_published_articles(request):
 def my_draft_articles(request):
     """显示当前用户的草稿文章"""
     # 获取当前用户的草稿文章
-    articles = Article.objects.filter(author=request.user, status="draft")  # type: ignore
+    # 使用select_related加载category，减少数据库查询
+    articles = (
+        Article.objects.select_related("category")
+        .prefetch_related("tags")
+        .filter(author=request.user, status="draft")
+    )  # type: ignore
 
     # 分页
     paginator = Paginator(articles, 10)  # 每页显示10篇文章
@@ -205,7 +227,15 @@ def generate_unique_slug(tag_name):
 
 def article_detail(request, article_slug):
     """文章详情视图"""
-    article = get_object_or_404(Article, slug=article_slug)
+    # 使用select_related预加载author和category，使用prefetch_related预加载tags和评论
+    article = get_object_or_404(
+        Article.objects.select_related("author", "category").prefetch_related(
+            "tags",
+            "comments__author",  # 预加载评论及评论作者
+            "comments__replies__author",  # 预加载评论回复及回复作者
+        ),
+        slug=article_slug,
+    )
 
     # 检查是否是文章作者，如果不是，则只能查看已发布且公开的文章
     if article.author != request.user:
@@ -242,9 +272,14 @@ def article_detail(request, article_slug):
 
     # 获取相关文章（同一分类或有共同标签的文章）
     if article.category:
-        related_articles = Article.objects.filter(  # type: ignore
-            category=article.category, status="published", visibility="public"
-        ).exclude(pk=article.pk)[:5]
+        # 使用select_related预加载作者数据
+        related_articles = (
+            Article.objects.select_related("author")
+            .filter(  # type: ignore
+                category=article.category, status="published", visibility="public"
+            )
+            .exclude(pk=article.pk)[:5]
+        )
     else:
         # 如果没有分类，尝试通过标签获取相关文章
         related_articles = (
@@ -290,6 +325,7 @@ def article_detail(request, article_slug):
     )
 
 
+@cache_page(CACHE_TTL)
 def home(request):
     """首页视图，展示最新发布的文章"""
     # 获取已发布且公开的文章，按发布时间排序
