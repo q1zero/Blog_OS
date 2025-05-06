@@ -1,0 +1,131 @@
+@startuml Blog_OS数据库ER图
+
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b>x</b>
+!define foreign_key(x) <u>x</u>
+!define unique(x) <color:green>x</color>
+!define not_null(x) <color:blue>x</color>
+
+' 用户模块
+Table(User, "User\n用户") {
+    primary_key(id) : BigAutoField
+    unique(username) : CharField
+    not_null(password) : CharField
+    unique(email) : EmailField
+    first_name : CharField
+    last_name : CharField
+    is_staff : BooleanField
+    is_active : BooleanField
+    date_joined : DateTimeField
+    bio : TextField
+    avatar : ImageField
+}
+
+Table(EmailVerification, "EmailVerification\n邮箱验证") {
+    primary_key(id) : BigAutoField
+    foreign_key(user_id) : ForeignKey
+    unique(token) : UUIDField
+    created_at : DateTimeField
+    expires_at : DateTimeField
+    verified : BooleanField
+}
+
+' 文章模块
+Table(Category, "Category\n文章分类") {
+    primary_key(id) : BigAutoField
+    not_null(name) : CharField
+    unique(slug) : SlugField
+    description : TextField
+    created_at : DateTimeField
+    updated_at : DateTimeField
+}
+
+Table(Tag, "Tag\n文章标签") {
+    primary_key(id) : BigAutoField
+    not_null(name) : CharField
+    unique(slug) : SlugField
+    created_at : DateTimeField
+    updated_at : DateTimeField
+}
+
+Table(Article, "Article\n文章") {
+    primary_key(id) : BigAutoField
+    not_null(title) : CharField
+    unique(slug) : SlugField
+    not_null(content) : TextField
+    foreign_key(author_id) : ForeignKey
+    foreign_key(category_id) : ForeignKey
+    status : CharField
+    visibility : CharField
+    created_at : DateTimeField
+    updated_at : DateTimeField
+    published_at : DateTimeField
+}
+
+Table(ArticleTag, "Article_Tag\n文章标签关联") {
+    primary_key(id) : BigAutoField
+    foreign_key(article_id) : ForeignKey
+    foreign_key(tag_id) : ForeignKey
+}
+
+Table(Like, "Like\n点赞") {
+    primary_key(id) : BigAutoField
+    foreign_key(user_id) : ForeignKey
+    foreign_key(article_id) : ForeignKey
+    created_at : DateTimeField
+}
+
+Table(Favorite, "Favorite\n收藏") {
+    primary_key(id) : BigAutoField
+    foreign_key(user_id) : ForeignKey
+    foreign_key(article_id) : ForeignKey
+    created_at : DateTimeField
+}
+
+' 评论模块
+Table(Comment, "Comment\n评论") {
+    primary_key(id) : BigAutoField
+    not_null(content) : TextField
+    foreign_key(author_id) : ForeignKey
+    foreign_key(article_id) : ForeignKey
+    foreign_key(parent_id) : ForeignKey
+    created_at : DateTimeField
+    updated_at : DateTimeField
+    is_approved : BooleanField
+}
+
+' 日志模块
+Table(AccessLog, "AccessLog\n访问日志") {
+    primary_key(id) : BigAutoField
+    not_null(path) : CharField
+    not_null(method) : CharField
+    status_code : PositiveIntegerField
+    foreign_key(user_id) : ForeignKey
+    ip_address : GenericIPAddressField
+    user_agent : TextField
+    referer : URLField
+    query_params : TextField
+    response_time : FloatField
+    timestamp : DateTimeField
+}
+
+' 关系定义
+User "1" -- "0..*" EmailVerification : has
+User "1" -- "0..*" Article : writes
+User "1" -- "0..*" Comment : posts
+User "1" -- "0..*" Like : gives
+User "1" -- "0..*" Favorite : saves
+User "1" -- "0..*" AccessLog : generates
+
+Category "1" -- "0..*" Article : contains
+
+Article "0..*" -- "0..*" Tag : categorized by
+(Article, Tag) .. ArticleTag
+
+Article "1" -- "0..*" Comment : receives
+Article "1" -- "0..*" Like : receives
+Article "1" -- "0..*" Favorite : receives
+
+Comment "0..1" -- "0..*" Comment : replies to
+
+@enduml
