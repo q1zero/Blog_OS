@@ -6,11 +6,11 @@ from django.utils.text import slugify
 from django.utils import timezone
 
 from apps.articles.models import Article, Category, Tag
-from api.serializers.article_serializers import (
+from utils.api.serializers.article_serializers import (
     ArticleListSerializer, ArticleDetailSerializer, ArticleCreateUpdateSerializer,
     CategorySerializer, TagSerializer
 )
-from api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
+from utils.api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

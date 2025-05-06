@@ -1,11 +1,10 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 
 from apps.users.models import User
-from api.serializers.user_serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
-from api.permissions import IsOwnerOrReadOnly
+from utils.api.serializers.user_serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
+from utils.api.permissions import IsOwnerOrReadOnly
 
 
 class UserViewSet(viewsets.ModelViewSet):

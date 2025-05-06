@@ -5,9 +5,9 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 
-from api.views.user_views import UserViewSet
-from api.views.article_views import ArticleViewSet, CategoryViewSet, TagViewSet
-from api.views.comment_views import CommentViewSet
+from utils.api.views.user_views import UserViewSet
+from utils.api.views.article_views import ArticleViewSet, CategoryViewSet, TagViewSet
+from utils.api.views.comment_views import CommentViewSet
 
 # 创建Swagger文档视图
 schema_view = get_schema_view(
@@ -37,16 +37,16 @@ urlpatterns = [
     path('v1/', include([
         # API根路由
         path('', include(router.urls)),
-        
+
         # JWT认证
         path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-        
+
         # DRF认证
         path('auth/', include('rest_framework.urls')),
     ])),
-    
+
     # Swagger文档
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

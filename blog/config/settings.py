@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.articles",
     "apps.comments",
-    "apps.logs.apps.LogsConfig",  # 访问日志应用
-    "api.apps.ApiConfig",  # API应用
+    "utils.logs.apps.LogsConfig",  # 访问日志应用
+    "utils.api.apps.ApiConfig",  # API应用
     "utils",
     # 第三方应用
     "rest_framework",
@@ -60,7 +60,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # 自定义中间件
-    "apps.logs.middleware.AccessLogMiddleware",  # 访问日志中间件
+    "utils.logs.middleware.AccessLogMiddleware",  # 访问日志中间件
 ]
 
 ROOT_URLCONF = "config.urls"

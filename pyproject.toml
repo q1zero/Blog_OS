@@ -11,4 +11,5 @@ dependencies = [
     "markdown>=3.8",
     "pillow>=11.2.1",
     "pymysql",
+    "drf-yasg>=1.21.7",
 ]
