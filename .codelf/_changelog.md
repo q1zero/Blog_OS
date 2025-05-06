@@ -1,3 +1,107 @@
+## 2025-05-03 16:30
+
+### 17. 实现RESTful API接口
+
+**Change Type**: feature
+
+> **Purpose**: 实现符合RESTful风格的API接口，支持版本控制和Swagger文档
+> **Detailed Description**:
+>
+> 1. 创建API应用，实现用户、文章、评论等资源的RESTful接口
+> 2. 使用DRF实现API视图和序列化器
+> 3. 实现API版本控制，使用URL路径方式（/api/v1/...）
+> 4. 集成Swagger文档，提供API自动文档
+> 5. 实现JWT认证和权限控制
+> **Reason for Change**: 提供标准化的API接口，方便前端和移动端集成
+> **Impact Scope**: 新增API应用和接口，不影响现有功能
+> **API Changes**: 新增 `/api/v1/` 路径下的所有API接口
+> **Configuration Changes**: 在settings.py中添加了API应用和DRF配置
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/api                 // add 新增API应用
+     - serializers/          // add API序列化器
+       - user_serializers.py // add 用户序列化器
+       - article_serializers.py // add 文章序列化器
+       - comment_serializers.py // add 评论序列化器
+     - views/               // add API视图
+       - user_views.py      // add 用户API视图
+       - article_views.py   // add 文章API视图
+       - comment_views.py   // add 评论API视图
+     - permissions.py       // add 自定义权限类
+     - urls.py              // add API URL配置
+   - blog/config/settings.py // update 更新DRF配置
+   - blog/config/urls.py     // update 添加API URL
+   - requirements.txt        // update 添加drf-yasg依赖
+   ```
+
+## 2025-05-01 16:30
+
+### 16. 实现访问日志记录功能
+
+**Change Type**: feature
+
+> **Purpose**: 实现全站访问日志记录功能，记录用户请求信息并提供管理界面
+> **Detailed Description**:
+>
+> 1. 创建访问日志模型，记录请求路径、方法、状态码、用户信息、IP地址等
+> 2. 实现访问日志中间件，自动记录所有HTTP请求
+> 3. 添加日志仪表盘页面，显示访问统计和详细记录
+> 4. 配置日志记录系统，支持控制台和文件日志
+> 5. 添加管理界面，方便管理员查看日志
+> **Reason for Change**: 提供系统访问监控和分析功能，帮助管理员了解网站流量和用户行为
+> **Impact Scope**: 影响全站，添加新的日志应用和中间件
+> **API Changes**: 新增 `/logs/dashboard/` URL用于日志仪表盘
+> **Configuration Changes**: 在settings.py中添加了日志配置和中间件
+> **Performance Impact**: 由于每个请求都会记录日志，可能会对性能有轻微影响
+
+   ```text
+   root
+   - blog/apps/logs            // add 新增日志应用
+     - models.py              // add 访问日志模型
+     - middleware.py          // add 访问日志中间件
+     - views.py               // add 日志仪表盘视图
+     - urls.py                // add 日志URL配置
+     - admin.py               // add 日志管理界面
+     - apps.py                // add 应用配置
+   - blog/templates/logs
+     - dashboard.html         // add 日志仪表盘模板
+   - blog/config
+     - settings.py            // refact 添加日志应用和中间件配置
+     - urls.py                // refact 添加日志URL路由
+   - blog/logs                // add 日志文件目录
+   ```
+
+## 2025-05-01 14:15
+
+### 15. 添加用户视图下的搜索功能
+
+**Change Type**: feature
+
+> **Purpose**: 在用户视图下添加搜索功能，允许用户搜索作者或文章
+> **Detailed Description**:
+>
+> 1. 在用户视图中添加搜索功能，支持按作者名称、个人简介搜索用户
+> 2. 支持按文章标题、内容搜索文章
+> 3. 搜索结果分为作者和文章两部分，分别显示
+> 4. 支持按搜索类型（全部、作者、文章）筛选结果
+> 5. 搜索结果支持分页显示
+> **Reason for Change**: 提升用户体验，方便用户快速查找感兴趣的作者和文章
+> **Impact Scope**: 影响用户模块，添加新的视图、URL和模板
+> **API Changes**: 新增 `/users/search/` URL用于搜索功能
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - blog/apps/users
+     - views.py               // refact 添加搜索视图函数
+     - urls.py                // refact 添加搜索URL路由
+   - blog/templates/users
+     - search_results.html    // add 搜索结果页面模板
+   ```
+
 ## 2025-05-01 01:53
 
 ### 14. 为管理员添加全局文章编辑和删除功能
@@ -56,7 +160,7 @@
    - blog/templates/base
      - base.html              // refact 在导航栏添加审核评论链接
    ```
-   
+
 ## {datetime: YYYY-MM-DD HH:mm:ss}
 
 ### 2025-05-01 01:23
@@ -134,9 +238,9 @@
 
    ```text
    root
-   - blog/templates/articles  
+   - blog/templates/articles
      - detail.html           // refact 调整文章详情页UI布局和交互
-   - blog/templates/comments  
+   - blog/templates/comments
      - comment.html          // refact 更新评论组件，添加JS确认弹窗和提示
    ```
 
@@ -212,12 +316,12 @@
   - 创建自定义模板过滤器`plain_text_preview`，去除Markdown格式符号
   - 过滤器可以处理各种Markdown元素（标题、加粗、链接等）
   - 在首页和文章列表页使用该过滤器，提供更好的阅读体验
-  
+
 - 技术实现细节：
   - 使用正则表达式处理各种Markdown格式
   - 将utils应用添加到INSTALLED_APPS配置
   - 在模板中加载自定义过滤器
-  
+
 - 代码实现位置：
 
   ```text
@@ -295,7 +399,7 @@
 
    ```text
    root
-   - blog/templates/comments  
+   - blog/templates/comments
      - comment.html          // fix 为回复评论添加删除确认弹窗
    ```
 
@@ -324,7 +428,7 @@
 
    ```text
    root
-   - blog/templates/articles  
+   - blog/templates/articles
      - home.html             // refact 在文章预览卡片底部添加点赞和收藏计数
      - article_form.html     // refact 将标签选择器改为标签输入框
    - blog/apps/articles

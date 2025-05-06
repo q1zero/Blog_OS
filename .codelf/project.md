@@ -16,6 +16,7 @@
 * djangorestframework>=3.14.0：RESTful API 支持
 * djangorestframework-simplejwt>=5.0：JWT 认证
 * markdown>=3.8：Markdown 渲染
+* drf-yasg>=1.21.7：Swagger API文档生成
 
 ## 开发环境
 
@@ -59,6 +60,21 @@ root
             - views.py       // 评论提交和删除视图
             - urls.py        // 评论URL配置
             - admin.py       // 评论管理配置
+        - logs       // 访问日志模块
+            - models.py      // 日志模型
+            - middleware.py  // 日志中间件
+            - views.py       // 日志仪表盘视图
+    - api            // API应用
+        - serializers// API序列化器
+            - user_serializers.py    // 用户序列化器
+            - article_serializers.py // 文章序列化器
+            - comment_serializers.py // 评论序列化器
+        - views      // API视图
+            - user_views.py         // 用户API视图
+            - article_views.py      // 文章API视图
+            - comment_views.py      // 评论API视图
+        - permissions.py    // 自定义权限类
+        - urls.py           // API URL配置
     - config         // 配置目录（settings, urls, wsgi, asgi）
     - utils          // 通用工具函数
         - templatetags       // 自定义模板标签和过滤器
@@ -76,6 +92,8 @@ root
             - comment.html   // 评论组件（支持嵌套，使用JS弹窗确认删除）
             - comment_confirm_delete.html // 评论删除确认页面
             - review_comments.html // 评论审核页面（管理员专用）
+        - logs       // 日志相关模板
+            - dashboard.html // 日志仪表盘页面
     - static         // 静态文件目录
         - css        // 样式文件目录
             - style.css      // 主要样式文件
@@ -240,6 +258,39 @@ root
 * `/comments/<article_slug>/add/` - 添加评论
 * `/comments/<comment_id>/delete/` - 删除评论
 * `/comments/review/` - 审核评论（管理员专用）
+
+### 访问日志模块
+
+访问日志模块提供了全站访问监控和分析功能，帮助管理员了解网站流量和用户行为。
+
+**主要模型：**
+
+1. **AccessLog（访问日志）**
+   * 请求信息：路径、方法、状态码
+   * 用户信息：用户ID（如果已登录）、IP地址、用户代理
+   * 请求详情：来源页面、查询参数
+   * 性能指标：响应时间
+   * 时间信息：访问时间
+
+**主要功能：**
+
+1. 访问日志记录
+   * 使用中间件自动记录所有HTTP请求
+   * 过滤静态文件请求，减少无用日志
+   * 记录请求和响应的详细信息
+
+2. 日志管理和分析
+   * 日志仪表盘显示访问统计信息
+   * 支持按时间、用户、路径等筛选日志
+   * 提供状态码统计和分析
+
+3. 日志存储和备份
+   * 日志记录存储在数据库中
+   * 支持将日志写入文件系统
+
+**URL结构：**
+
+* `/logs/dashboard/` - 日志仪表盘（管理员专用）
 
 ### 工具模块
 
