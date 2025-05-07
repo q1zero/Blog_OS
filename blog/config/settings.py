@@ -225,18 +225,15 @@ SIMPLE_JWT = {
 
 # 邮件配置
 # 开发环境使用控制台后端
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# 生产环境使用SMTP后端
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "mail.tjise.edu.cn"
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True  # 注意：端口465通常使用SSL而非TLS
-EMAIL_HOST_USER = "2450310705@stu.tjise.edu.cn"
-EMAIL_HOST_PASSWORD = "ZbpRDBa1d7Kzjpqy"
-
-# 默认发件人邮箱
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "2450310705@stu.tjise.edu.cn"
+
+# 注释掉这些SMTP配置（如果存在）
+# EMAIL_HOST = "mail.tjise.edu.cn"
+# EMAIL_PORT = 465
+# EMAIL_USE_SSL = True
+# EMAIL_HOST_USER = "2450310705@stu.tjise.edu.cn"
+# EMAIL_HOST_PASSWORD = "ZbpRDBa1d7Kzjpqy"
 
 # 站点URL，用于构建完整的URL
 SITE_URL = "http://127.0.0.1:8000"
@@ -251,6 +248,21 @@ CACHES = {
 
 # 缓存过期时间设置
 CACHE_TTL = 60 * 15  # 15分钟
+
+# Celery配置
+CELERY_BROKER_URL = "redis://localhost:6379/0"  # Redis作为消息代理
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"  # Redis作为结果存储
+CELERY_ACCEPT_CONTENT = ["json"]  # 指定接受的内容类型
+CELERY_TASK_SERIALIZER = "json"  # 任务序列化和反序列化使用JSON
+CELERY_RESULT_SERIALIZER = "json"  # 结果序列化为JSON
+CELERY_TIMEZONE = TIME_ZONE  # 使用与Django相同的时区
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 任务硬超时时间为30分钟
+CELERY_TASK_SOFT_TIME_LIMIT = 20 * 60  # 任务软超时时间为20分钟
+
+# 导入Celery定时任务配置
+from utils.celery.schedule import CELERY_BEAT_SCHEDULE
+
+CELERY_BEAT_SCHEDULE = CELERY_BEAT_SCHEDULE
 
 # 日志配置
 LOGGING = {
