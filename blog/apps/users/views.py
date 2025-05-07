@@ -67,10 +67,13 @@ def register(request):
                 print("===== 注册成功，重定向到注册完成页面 =====\n")
                 return redirect('users:register_done')
             else:
-                # 如果邮件发送失败，删除用户
-                user.delete()
-                print(f"Deleted user due to email sending failure: {username}")
-                messages.error(request, _('邮件发送失败，请重试。'))
+                # 如果邮件发送失败，不删除用户，而是显示错误信息
+                print(f"Email sending failed for user: {username}")
+                messages.warning(
+                    request,
+                    _('邮件发送失败，但您的账号已创建。请联系管理员激活您的账号或稍后重试。')
+                )
+                return redirect('users:register_done')
         except Exception as e:
             print(f"Error during registration: {e}")
             import traceback

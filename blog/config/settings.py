@@ -224,11 +224,11 @@ SIMPLE_JWT = {
 }
 
 # 邮件配置
-# 开发环境使用控制台后端
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# 开发环境使用控制台后端 - 启用此选项用于开发测试
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # 生产环境使用SMTP后端
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "mail.tjise.edu.cn"
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True  # 注意：端口465通常使用SSL而非TLS
@@ -303,4 +303,6 @@ DEBUG_TOOLBAR_CONFIG = {
     # 默认隐藏工具栏，只在URL中添加__debug__=true参数时才显示
     "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG
     and request.GET.get("__debug__", "") == "true",
+    # 允许在测试中使用Debug Toolbar
+    "IS_RUNNING_TESTS": False,
 }

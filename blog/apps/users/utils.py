@@ -89,7 +89,8 @@ def send_verification_email(user, request=None):
     """
     try:
         print("\n===== 开始发送验证邮件 =====")
-        print(f"Email settings: BACKEND={settings.EMAIL_BACKEND}, HOST={settings.EMAIL_HOST}, PORT={settings.EMAIL_PORT}")
+        # 使用getattr避免属性不存在的错误
+        print(f"Email settings: BACKEND={settings.EMAIL_BACKEND}, HOST={getattr(settings, 'EMAIL_HOST', 'N/A')}, PORT={getattr(settings, 'EMAIL_PORT', 'N/A')}")
         print(f"FROM_EMAIL={settings.DEFAULT_FROM_EMAIL}, TO_EMAIL={user.email}")
 
         # 创建验证记录
@@ -178,7 +179,12 @@ Blog_OS团队
             to=[user.email]
         )
         email.attach_alternative(html_message, "text/html")
-        email.send(fail_silently=False)
+        # 在控制台后端模式下，邮件不会真正发送，而是打印到控制台
+        if 'console' in settings.EMAIL_BACKEND.lower():
+            print("\n[DEBUG] 使用控制台邮件后端，邮件将打印到控制台而非真正发送")
+            email.send(fail_silently=True)
+        else:
+            email.send(fail_silently=False)
         print(f"邮件已成功发送到: {user.email}")
         print("===== 验证邮件发送成功 =====\n")
         return True
