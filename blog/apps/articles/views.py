@@ -55,7 +55,7 @@ class ArticleForm(forms.ModelForm):
         }
 
 
-@cache_page(CACHE_TTL)
+# 移除文章列表的缓存装饰器，确保用户登录状态变化时页面正确更新
 def article_list(request, category_slug=None, tag_id=None):
     """文章列表视图，支持分类和标签过滤"""
     # 忽略类型检查器的Django ORM错误
@@ -325,7 +325,7 @@ def article_detail(request, article_slug):
     )
 
 
-@cache_page(CACHE_TTL)
+# 移除首页的缓存装饰器，确保每次请求都获取最新的登录状态
 def home(request):
     """首页视图，展示最新发布的文章"""
     # 获取已发布且公开的文章，按发布时间排序
