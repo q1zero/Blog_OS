@@ -156,7 +156,8 @@ def user_logout(request):
     """用户登出视图"""
     logout(request)
     messages.success(request, _('您已成功登出！'))
-    return redirect('articles:article_list')
+    # 重定向到首页而不是文章列表页面
+    return redirect('home')
 
 
 class UserProfileView(LoginRequiredMixin, DetailView):

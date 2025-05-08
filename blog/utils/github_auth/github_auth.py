@@ -153,11 +153,8 @@ def github_callback(request):
             success_msg = f"使用GitHub账号登录成功！欢迎回来，{name}"
             messages.success(request, success_msg)
 
-            # 返回成功页面
-            return render(request, 'github_auth/login_success.html', {
-                'message': success_msg,
-                'user': user
-            })
+            # 直接重定向到首页，而不是显示中间成功页面
+            return redirect('home')
 
         except Exception as e:
             error_msg = f"GitHub登录处理错误: {str(e)}"
