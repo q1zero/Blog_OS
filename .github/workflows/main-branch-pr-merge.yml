@@ -172,48 +172,58 @@ jobs:
       
       - name: 验证Django项目能启动
         run: |
-          echo "尝试在后台启动Django服务器 (from project root)..."
+          echo "尝试在后台启动Django服务器 (from project root, binding to 0.0.0.0:8000)..."
           # 在后台启动服务器，并将输出重定向到日志文件以便调试
           # Log file will now be in blog/django_server.log relative to project root.
-          uv run python blog/manage.py runserver > blog/django_server.log 2>&1 &
+          uv run python blog/manage.py runserver 0.0.0.0:8000 > blog/django_server.log 2>&1 &
           SERVER_PID=$!
           echo "Django服务器进程PID: $SERVER_PID"
           
           # 等待服务器启动
-          sleep 10 # 等待10秒给服务器启动时间，根据需要调整
+          echo "等待20秒让服务器启动..."
+          sleep 20 # 增加等待时间
 
           echo "检查服务器是否仍在运行..."
           if ! ps -p $SERVER_PID > /dev/null; then
-            echo "Django服务器未能成功启动或已意外终止。查看blog/django_server.log获取详情。"
+            echo "---------------------------------------------------------------------"
+            echo "!!! Django服务器未能成功启动或已意外终止。查看下面的日志: !!!"
+            echo "---------------------------------------------------------------------"
+            echo "Contents of blog/django_server.log:"
             cat blog/django_server.log
             exit 1
           fi
 
-          echo "使用curl验证服务器响应..."
+          echo "使用curl -v 验证服务器响应 (http://127.0.0.1:8000)..."
           # 尝试curl请求，最多重试几次，因为服务器可能需要一点时间来完全准备好
           RETRY_COUNT=0
-          MAX_RETRIES=5
+          MAX_RETRIES=5 # 保持5次重试
           SUCCESS=false
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            curl -sS --fail http://127.0.0.1:8000/
-            if [ $? -eq 0 ]; then
+            echo "Curl尝试 $((RETRY_COUNT+1)) of $MAX_RETRIES..."
+            # 使用 -v 获取详细输出, -sS 保持简洁但显示错误, --fail 使其在HTTP错误时失败
+            curl -v -sS --fail http://127.0.0.1:8000/
+            CURL_EXIT_CODE=$?
+            if [ $CURL_EXIT_CODE -eq 0 ]; then
               echo "Curl请求成功，服务器响应正常。"
               SUCCESS=true
               break
             else
-              echo "Curl请求失败，将在2秒后重试... ($((RETRY_COUNT+1))/$MAX_RETRIES)"
+              echo "Curl请求失败 (退出码: $CURL_EXIT_CODE)，将在3秒后重试..."
               RETRY_COUNT=$((RETRY_COUNT+1))
-              sleep 2
+              sleep 3 # 每次重试间隔3秒
             fi
           done
 
           echo "停止Django服务器 (PID: $SERVER_PID)..."
           kill $SERVER_PID
           # 等待服务器进程完全停止
-          wait $SERVER_PID || echo "Django服务器已停止。"
+          wait $SERVER_PID || echo "Django服务器已停止 (或之前已停止)。"
 
           if [ "$SUCCESS" = false ]; then
-            echo "Django服务器已启动，但curl请求在多次重试后仍失败。查看blog/django_server.log获取详情。"
+            echo "---------------------------------------------------------------------"
+            echo "!!! Django服务器已启动，但curl请求在多次重试后仍失败。查看下面的日志: !!!"
+            echo "---------------------------------------------------------------------"
+            echo "Contents of blog/django_server.log:"
             cat blog/django_server.log
             exit 1
           fi
