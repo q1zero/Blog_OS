@@ -20,6 +20,9 @@
 * django-debug-toolbar>=5.2.0：调试和性能分析工具
 * django-allauth>=65.7.0：第三方社交账号认证
 * requests>=2.32.3：HTTP请求库，支持OAuth认证流程
+* django-elasticsearch-dsl==8.0：Django 与 Elasticsearch 集成
+* elasticsearch==8.18.1：Elasticsearch Python 客户端
+* elasticsearch-dsl==8.18.0：Elasticsearch DSL 高级查询框架
 
 ## 开发环境
 
@@ -58,6 +61,9 @@ root
             - views.py       // 文章列表、详情、创建、更新和删除视图
             - urls.py        // 文章URL配置
             - admin.py       // 管理后台配置
+            - search_indexes.py // Elasticsearch 索引定义
+            - apps.py       // 应用配置，用于加载搜索索引
+            - signals.py    // 信号处理，用于文章变更时更新搜索索引
         - comments   // 评论系统模块
             - models.py      // 评论模型（支持嵌套回复）
             - views.py       // 评论提交和删除视图
@@ -336,7 +342,16 @@ root
      * 浏览量处理：优化文章浏览量统计
    * 实现定时任务，自动执行定期维护和统计操作
 
-3. **使用Celery异步处理耗时任务**
+3. **Elasticsearch 搜索功能**
+   * 集成 Elasticsearch 实现全文搜索能力
+   * 主要功能：
+     * 将文章数据（标题、内容、作者、分类、标签）索引到 Elasticsearch
+     * 支持对文章内容进行全文搜索
+     * 结构化搜索（按作者、分类、标签等过滤）
+     * 高亮显示匹配的关键词
+   * 应用场景：网站搜索框，允许用户快速查找相关内容
+
+4. **使用Celery异步处理耗时任务**
    * 异步发送邮件，避免阻塞主线程
 
    ```python

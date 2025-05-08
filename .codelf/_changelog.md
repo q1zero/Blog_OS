@@ -817,3 +817,40 @@
    root
    - pyproject.toml         // update 添加django-allauth和requests依赖
    ```
+
+## 2025-05-08 17:36
+
+### 21. 添加 Elasticsearch 搜索功能
+
+**Change Type**: feature
+
+> **Purpose**: 为博客平台添加 Elasticsearch 搜索功能，提供高效的内容搜索能力
+> **Detailed Description**:
+>
+> 1. 集成 Elasticsearch 引擎:
+>    * 安装 django-elasticsearch-dsl 库，提供 Django 与 Elasticsearch 的集成
+>    * 添加 Elasticsearch 连接配置到 `settings.py`
+> 2. 创建文章搜索索引:
+>    * 定义 `ArticleDocument` 类，映射 Article 模型到 Elasticsearch 索引
+>    * 配置索引结构包含文章的标题、内容、作者、分类、标签和发布时间
+>    * 设置索引分片和副本配置
+> 3. 配置应用加载机制:
+>    * 创建 `ArticlesConfig` 自定义应用配置，确保在应用启动时加载搜索索引
+>    * 创建必要的信号处理文件
+>    * 更新 `INSTALLED_APPS` 配置使用自定义应用配置
+> **Reason for Change**: 提高网站搜索能力，允许用户快速找到相关内容
+> **Impact Scope**: 影响文章应用模块，添加搜索索引逻辑
+> **API Changes**: 无
+> **Configuration Changes**: 添加 ELASTICSEARCH_DSL 配置到 settings.py，将 django_elasticsearch_dsl 添加到 INSTALLED_APPS
+> **Performance Impact**: 提供高性能的全文搜索，占用额外的系统资源用于索引构建和维护
+
+   ```text
+   root
+   - blog/config
+     - settings.py           // update 添加 Elasticsearch 连接配置和应用
+   - blog/apps/articles
+     - search_indexes.py     // add 定义文章的 Elasticsearch 索引
+     - apps.py               // add 自定义应用配置加载索引
+     - signals.py            // add 用于信号处理的文件
+   - pyproject.toml          // update 添加 django-elasticsearch-dsl 依赖
+   ```
