@@ -1,5 +1,6 @@
 import datetime
 import os
+import uuid
 from io import BytesIO
 from PIL import Image
 from django.core.mail import EmailMultiAlternatives
@@ -29,6 +30,13 @@ def crop_and_resize_image(image_file, size=(300, 300), format="JPEG"):
     Returns:
         处理后的图片文件对象
     """
+    # 检查是否为BytesIO对象并添加调试信息
+    is_bytesio = isinstance(image_file, BytesIO)
+    if is_bytesio:
+        print(f"处理BytesIO对象，长度: {image_file.getbuffer().nbytes}字节")
+    else:
+        print(f"处理文件对象: {getattr(image_file, 'name', '未知名称')}")
+
     try:
         # 打开图片
         img = Image.open(image_file)
@@ -66,10 +74,20 @@ def crop_and_resize_image(image_file, size=(300, 300), format="JPEG"):
         output.seek(0)
 
         # 创建新的文件对象
+        # 为文件名生成逻辑添加对BytesIO对象的支持
+        if hasattr(image_file, 'name'):
+            # 如果有name属性，使用原始文件名
+            filename = f"{os.path.splitext(image_file.name)[0]}.jpg"
+            print(f"使用原始文件名: {filename}")
+        else:
+            # 对于没有name属性的对象（如BytesIO），生成一个默认文件名
+            filename = f"image_{uuid.uuid4().hex[:8]}.jpg"
+            print(f"为BytesIO对象生成随机文件名: {filename}")
+            
         return InMemoryUploadedFile(
             output,
             "ImageField",
-            f"{os.path.splitext(image_file.name)[0]}.jpg",
+            filename,
             "image/jpeg",
             output.getbuffer().nbytes,
             None,
@@ -79,6 +97,13 @@ def crop_and_resize_image(image_file, size=(300, 300), format="JPEG"):
         import traceback
 
         traceback.print_exc()
+        
+        # 更详细的错误信息
+        if isinstance(image_file, BytesIO):
+            print(f"BytesIO对象处理失败，返回原始对象")
+        else:
+            print(f"文件对象处理失败，返回原始对象: {getattr(image_file, 'name', '未知')}")
+            
         return image_file  # 如果处理失败，返回原始图片
 
 
