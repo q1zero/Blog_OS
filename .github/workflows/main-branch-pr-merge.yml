@@ -167,16 +167,25 @@ jobs:
           fi
           echo "Django项目检查通过 (basic-integration job: blog/manage.py check)."
       
-      # - name: 尝试运行数据库迁移
-      #   continue-on-error: true
-      
+      - name: 运行数据库迁移 (basic-integration)
+        run: |
+          echo "尝试运行数据库迁移..."
+          # 确保从项目根目录运行
+          uv run python blog/manage.py migrate
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "!!! 数据库迁移失败 (exit code $EXIT_CODE)!"
+            # 如果迁移失败，通常服务器也无法正常启动，这里可以选择退出或记录后继续
+            exit $EXIT_CODE # 让CI步骤失败
+          fi
+          echo "数据库迁移成功完成。"
+
       - name: 验证Django项目能启动
         run: |
-          echo "尝试在后台启动Django服务器 (from project root, binding to 0.0.0.0:8000, skipping checks)..."
+          echo "尝试在后台启动Django服务器 (from project root, binding to 0.0.0.0:8000)..."
           # 在后台启动服务器，并将输出重定向到日志文件以便调试
-          # Log file will now be in blog/django_server.log relative to project root.
-          # 添加 --skip-checks 来避免因迁移状态导致启动失败
-          uv run python blog/manage.py runserver 0.0.0.0:8000 --skip-checks > blog/django_server.log 2>&1 &
+          # 暂时移除 --skip-checks，因为我们期望迁移已经成功
+          uv run python blog/manage.py runserver 0.0.0.0:8000 > blog/django_server.log 2>&1 &
           SERVER_PID=$!
           echo "Django服务器进程PID: $SERVER_PID"
           
