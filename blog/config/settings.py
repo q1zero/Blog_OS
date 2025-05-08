@@ -305,6 +305,21 @@ CACHES = {
 # 缓存过期时间设置
 CACHE_TTL = 60 * 15  # 15分钟
 
+# Celery配置
+CELERY_BROKER_URL = "redis://localhost:6379/0"  # Redis作为消息代理
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"  # Redis作为结果存储
+CELERY_ACCEPT_CONTENT = ["json"]  # 指定接受的内容类型
+CELERY_TASK_SERIALIZER = "json"  # 任务序列化和反序列化使用JSON
+CELERY_RESULT_SERIALIZER = "json"  # 结果序列化为JSON
+CELERY_TIMEZONE = TIME_ZONE  # 使用与Django相同的时区
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 任务硬超时时间为30分钟
+CELERY_TASK_SOFT_TIME_LIMIT = 20 * 60  # 任务软超时时间为20分钟
+
+# 导入Celery定时任务配置
+from utils.celery.schedule import CELERY_BEAT_SCHEDULE
+
+CELERY_BEAT_SCHEDULE = CELERY_BEAT_SCHEDULE
+
 # 日志配置
 LOGGING = {
     "version": 1,

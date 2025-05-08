@@ -742,3 +742,50 @@
    - blog/apps/comments
      - tests.py              // update 实现评论模块的单元测试
    ```
+
+## 2025-05-07 17:23:37
+
+### 20. 实现Celery异步任务功能
+
+**Change Type**: feature, enhancement
+
+> **Purpose**: 使用Celery和Redis实现异步任务处理，优化系统性能和用户体验
+> **Detailed Description**:
+>
+> 1. 实现Celery异步任务框架：
+>    * 创建Celery应用实例配置文件 (`utils/celery/app.py`)
+>    * 实现常用异步任务 (`utils/celery/tasks.py`)：邮件发送、站点统计、数据清理、浏览量处理
+>    * 配置定时任务计划 (`utils/celery/schedule.py`)
+>    * 提供高级任务处理接口 (`utils/celery/handlers.py`)
+>    * 创建详细使用文档 (`utils/celery/README.md`)
+> 2. 在Django配置中集成Celery：
+>    * 配置Redis作为消息代理(Broker)和结果存储(Backend)
+>    * 在settings.py中添加Celery配置
+>    * 创建Celery初始化模块，在WSGI/ASGI加载时初始化
+> 3. 优化现有功能：
+>    * 将用户注册中的验证邮件发送改为异步处理，提高注册性能
+>    * 实现文章和评论通知的异步发送
+>    * 设置定时任务：站点统计生成(每天2点)、过期令牌清理(每天3点)、文章浏览量处理(每小时)
+> **Reason for Change**: 提高系统性能，优化用户体验，解决同步处理耗时操作（如邮件发送）导致的响应延迟问题
+> **Impact Scope**: 影响系统配置、用户注册流程和邮件发送功能
+> **API Changes**: 无API变更，为内部实现优化
+> **Configuration Changes**: 添加Celery和Redis相关配置到settings.py
+> **Performance Impact**: 显著提高系统响应速度，特别是涉及邮件发送的操作
+
+   ```text
+   root
+   - blog/utils/celery/                 // add 新增Celery异步任务模块
+     - __init__.py                     // add 包初始化文件
+     - app.py                          // add Celery应用实例配置
+     - tasks.py                        // add 异步任务定义
+     - schedule.py                     // add 定时任务配置
+     - handlers.py                     // add 任务处理器和高级接口
+     - README.md                       // add 使用说明文档
+   - blog/config
+     - settings.py                     // refact 添加Celery配置
+     - celery_init.py                  // add Celery初始化模块
+     - wsgi.py                         // refact 引入Celery初始化
+   - blog/apps/users
+     - utils.py                        // refact 修改邮件发送为异步处理
+   - pyproject.toml                    // refact 添加celery和redis依赖
+   ```

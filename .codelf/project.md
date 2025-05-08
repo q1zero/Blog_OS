@@ -325,6 +325,38 @@ root
      * `plain_text_preview`：将Markdown文本转换为纯文本预览，去除所有格式符号
    * 应用场景：文章列表和首页的文章预览展示
 
+2. **Celery异步任务**
+   * 使用Celery和Redis实现异步任务处理，提高系统性能和用户体验
+   * 主要任务类型：
+     * 邮件发送：异步发送验证邮件、通知等
+     * 站点统计：生成站点访问和用户统计数据
+     * 数据清理：定期清理过期令牌和临时数据
+     * 浏览量处理：优化文章浏览量统计
+   * 实现定时任务，自动执行定期维护和统计操作
+
+3. **使用Celery异步处理耗时任务**
+   * 异步发送邮件，避免阻塞主线程
+
+   ```python
+   # 同步发送改为异步发送
+   from utils.celery.tasks import send_email_async
+   
+   # 直接调用异步任务
+   send_email_async.delay(subject, message, recipient_list=[user.email])
+   ```
+
+   * 定时执行站点统计和数据清理任务
+
+   ```python
+   # 在Celery Beat中配置定时任务
+   CELERY_BEAT_SCHEDULE = {
+       'cleanup-expired-tokens-daily': {
+           'task': 'utils.celery.tasks.cleanup_expired_tokens',
+           'schedule': crontab(hour=3, minute=0),  # 每天凌晨3点执行
+       },
+   }
+   ```
+
 ## 测试说明
 
 项目包含完整的单元测试，覆盖了关键功能和组件。
