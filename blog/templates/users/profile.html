@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load socialaccount %}
 
 {% block title %}{{ profile_user.username }}的个人主页 - Blog_OS{% endblock %}
 
@@ -73,6 +74,7 @@
                                 <span class="badge bg-danger">未激活</span>
                             {% endif %}
                         </li>
+                        <!-- 已移除社交账号管理链接，因为我们使用自定义的GitHub登录流程 -->
                     </ul>
                 </div>
             </div>

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",  # 必须添加此应用
     # 自定义应用
     "apps.users",
     "apps.articles",
@@ -50,6 +51,11 @@ INSTALLED_APPS = [
     "markdown",
     "drf_yasg",  # Swagger文档
     "debug_toolbar",  # Django Debug Toolbar
+    # django-allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",  # GitHub提供商
 ]
 
 MIDDLEWARE = [
@@ -61,6 +67,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # django-allauth中间件
+    "allauth.account.middleware.AccountMiddleware",
     # 自定义中间件
     "utils.logs.middleware.AccessLogMiddleware",  # 访问日志中间件
 ]
@@ -166,6 +174,51 @@ AUTH_USER_MODEL = "users.User"
 # 登录和登出重定向URL
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# django-allauth配置
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    # Django默认的认证后端
+    'django.contrib.auth.backends.ModelBackend',
+    # django-allauth的认证后端
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# 社交账号设置
+SOCIALACCOUNT_PROVIDERS = {
+    'github': {
+        'APP': {
+            'client_id': 'Ov23liDnrwEMQqWLTWJs',
+            'secret': '85da38312e31fedfa2ae0dcf6ce105bdc206beed',
+            'key': ''
+        },
+        'SCOPE': ['user:email'],
+        'VERIFIED_EMAIL': True,
+    }
+}
+
+# 允许用户在没有电子邮件的情况下使用社交账号登录
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+
+# 允许用户使用多个社交账号关联到同一个本地账号
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+
+# 自动关联新用户
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# 调试模式
+SOCIALACCOUNT_STORE_TOKENS = True
+
+# 日志级别 - 已删除有问题的配置
+
+# 额外的allauth设置
+# 新的配置格式
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
 
 # 媒体文件配置
 MEDIA_URL = "/media/"

@@ -1,0 +1,27 @@
+{% extends 'base/base.html' %}
+
+{% block title %}GitHub登录成功 - Blog_OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">GitHub登录成功</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <p>{{ message }}</p>
+                </div>
+                
+                <h5>您已成功登录</h5>
+                <p>您已使用GitHub账号成功登录。现在您可以：</p>
+                <div class="d-grid gap-2">
+                    <a href="/" class="btn btn-primary">前往首页</a>
+                    <a href="{% url 'users:profile' user.username %}" class="btn btn-outline-primary">查看个人资料</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

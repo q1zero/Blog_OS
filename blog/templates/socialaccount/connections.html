@@ -1,0 +1,53 @@
+{% extends 'base/base.html' %}
+{% load socialaccount %}
+
+{% block title %}社交账号连接 - Blog_OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">社交账号连接</h4>
+            </div>
+            <div class="card-body">
+                {% if form.accounts %}
+                <p>您已连接以下社交账号：</p>
+                <form method="post" action="{% url 'socialaccount_connections' %}">
+                    {% csrf_token %}
+                    <div class="list-group">
+                        {% for base_account in form.accounts %}
+                        {% with base_account.get_provider_account as account %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">{{ account.get_brand.name }}</span>
+                                <small class="text-muted d-block">{{ account }}</small>
+                            </div>
+                            <div class="form-check">
+                                <input id="id_account_{{ base_account.id }}" type="radio" name="account" value="{{ base_account.id }}"/>
+                                <label for="id_account_{{ base_account.id }}" class="form-check-label">断开连接</label>
+                            </div>
+                        </div>
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-danger" type="submit">断开选中的账号</button>
+                    </div>
+                </form>
+                {% else %}
+                <p>您还没有连接任何社交账号。</p>
+                {% endif %}
+
+                <hr>
+                <h5>添加社交账号</h5>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="{% provider_login_url 'github' process='connect' %}" class="btn btn-dark">
+                        <i class="fab fa-github"></i> 连接GitHub账号
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

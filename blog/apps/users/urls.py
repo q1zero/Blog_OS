@@ -20,4 +20,6 @@ urlpatterns = [
     path('profile/change-password/', views.UserPasswordChangeView.as_view(), name='change_password'),
     path('profile/change-password/done/', views.password_change_done, name='password_change_done'),
     path('profile/<str:username>/', views.UserProfileView.as_view(), name='profile'),
+
+    # GitHub登录相关URL已移动到utils/github_auth目录
 ]

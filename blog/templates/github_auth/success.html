@@ -1,0 +1,28 @@
+{% extends 'base/base.html' %}
+
+{% block title %}GitHub授权成功 - Blog_OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">GitHub授权成功</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <p>{{ message }}</p>
+                    <p>授权码: <code>{{ code }}</code></p>
+                </div>
+                
+                <h5>下一步</h5>
+                <p>您已成功授权GitHub账号。现在您可以：</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'users:login' %}" class="btn btn-primary">返回登录页面</a>
+                    <a href="/" class="btn btn-outline-primary">返回首页</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
