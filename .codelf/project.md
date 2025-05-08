@@ -18,6 +18,8 @@
 * markdown>=3.8：Markdown 渲染
 * drf-yasg>=1.21.7：Swagger API文档生成
 * django-debug-toolbar>=5.2.0：调试和性能分析工具
+* django-allauth>=0.60.0：第三方认证支持
+* requests>=2.31.0：HTTP请求库，用于GitHub API调用
 
 ## 开发环境
 
@@ -78,6 +80,13 @@ root
         - urls.py           // API URL配置
     - config         // 配置目录（settings, urls, wsgi, asgi）
     - utils          // 通用工具函数
+        - github_auth        // GitHub认证模块
+            - __init__.py    // 包初始化文件
+            - github_auth.py // GitHub认证核心功能
+            - urls.py        // GitHub认证URL配置
+            - management.py  // GitHub应用配置管理
+            - cli.py         // 命令行工具
+            - README.md      // 使用文档和故障排除指南
         - templatetags       // 自定义模板标签和过滤器
             - __init__.py    // 包初始化文件
             - markdown_filters.py // Markdown文本处理过滤器
@@ -131,6 +140,7 @@ root
    * 支持用户名/邮箱注册
    * 邮箱验证功能，确保邮箱真实性
    * 验证链接过期处理和重新发送功能
+   * GitHub第三方登录，无需注册即可登录
 
 2. 用户登录/登出管理
    * 使用Django原生会话认证
@@ -159,6 +169,8 @@ root
 * `/users/resend-verification/` - 重新发送验证邮件
 * `/users/login/` - 用户登录
 * `/users/logout/` - 用户登出
+* `/github/login/` - GitHub登录
+* `/github/callback/` - GitHub登录回调
 * `/users/profile/<username>/` - 用户个人资料
 * `/users/profile/edit/` - 编辑个人资料
 * `/users/profile/change-avatar/` - 更换头像
@@ -340,7 +352,7 @@ root
    ```python
    # 同步发送改为异步发送
    from utils.celery.tasks import send_email_async
-   
+
    # 直接调用异步任务
    send_email_async.delay(subject, message, recipient_list=[user.email])
    ```
