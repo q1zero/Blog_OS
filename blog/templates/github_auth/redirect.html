@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>重定向到GitHub</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+        // 使用JavaScript重定向到GitHub授权页面
+        window.onload = function() {
+            // 获取URL参数
+            var url = "{{ github_auth_url|safe }}";
+            console.log("重定向到: " + url);
+            
+            // 使用JavaScript重定向
+            window.location.href = url;
+            
+            // 如果5秒后仍未重定向，显示手动链接
+            setTimeout(function() {
+                document.getElementById("manual-link").style.display = "block";
+            }, 5000);
+        };
+    </script>
+</head>
+<body>
+    <h1>正在重定向到GitHub授权页面...</h1>
+    <p>如果您没有被自动重定向，请点击下面的链接：</p>
+    <div id="manual-link" style="display:none;">
+        <a href="{{ github_auth_url|safe }}" target="_blank">手动前往GitHub授权页面</a>
+    </div>
+</body>
+</html>

@@ -30,6 +30,12 @@ urlpatterns = [
     path("logs/", include("utils.logs.urls", namespace="logs")),
     # API URLs
     path("api/", include("utils.api.urls")),
+    # GitHub认证URLs
+    path("github/", include("utils.github_auth.urls", namespace="github_auth")),
+    # 添加对GitHub回调的处理
+    path("accounts/github/callback", include("utils.github_auth.urls_callback")),
+    # django-allauth URLs
+    path("accounts/", include("allauth.urls")),
 ]
 
 if settings.DEBUG:
