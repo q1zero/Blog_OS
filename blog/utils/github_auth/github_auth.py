@@ -9,8 +9,15 @@ from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
 from django.utils.http import urlencode
 from django.http import HttpResponseRedirect
+from django.core.files.base import ContentFile
 import requests
 import json
+import os
+import uuid
+from io import BytesIO
+from PIL import Image
+
+from apps.users.utils import crop_and_resize_image
 
 def github_login(request):
     """
@@ -133,6 +140,32 @@ def github_callback(request):
             try:
                 user = User.objects.get(username=username)
                 print(f"用户已存在: {username}")
+                
+                # 为已存在的用户更新GitHub头像
+                try:
+                    # 获取GitHub头像URL
+                    avatar_url = github_user.get('avatar_url')
+                    if avatar_url:
+                        print(f"更新GitHub头像: {avatar_url}")
+                        # 下载头像
+                        avatar_response = requests.get(avatar_url)
+                        if avatar_response.status_code == 200:
+                            # 保存头像
+                            avatar_content = avatar_response.content
+                            # 使用PIL处理头像
+                            img_io = BytesIO(avatar_content)
+                            # 使用我们现有的裁剪和调整大小函数
+                            processed_image = crop_and_resize_image(img_io)
+                            
+                            # 如果用户已有自定义头像（不是默认头像），则不覆盖
+                            if not user.avatar or user.avatar.name == 'avatars/test.jpg':
+                                # 随机文件名，避免冲突
+                                image_name = f"github_{github_id}_{uuid.uuid4().hex[:8]}.jpg"
+                                # 设置用户头像
+                                user.avatar.save(image_name, processed_image, save=True)
+                                print(f"已更新GitHub头像: {image_name}")
+                except Exception as e:
+                    print(f"更新GitHub头像失败: {str(e)}")
             except User.DoesNotExist:
                 # 创建新用户
                 user = User.objects.create_user(
@@ -143,6 +176,32 @@ def github_callback(request):
                 # 设置用户的名字
                 user.first_name = name
                 user.set_unusable_password()  # 设置为不可用的密码
+                
+                # 设置GitHub头像
+                try:
+                    # 获取GitHub头像URL
+                    avatar_url = github_user.get('avatar_url')
+                    if avatar_url:
+                        print(f"下载GitHub头像: {avatar_url}")
+                        # 下载头像
+                        avatar_response = requests.get(avatar_url)
+                        if avatar_response.status_code == 200:
+                            # 保存头像
+                            avatar_content = avatar_response.content
+                            # 使用PIL处理头像
+                            img_io = BytesIO(avatar_content)
+                            # 使用我们现有的裁剪和调整大小函数
+                            processed_image = crop_and_resize_image(img_io)
+                            
+                            # 随机文件名，避免冲突
+                            image_name = f"github_{github_id}_{uuid.uuid4().hex[:8]}.jpg"
+                            # 设置用户头像
+                            user.avatar.save(image_name, processed_image, save=False)
+                            print(f"已设置GitHub头像: {image_name}")
+                except Exception as e:
+                    print(f"设置GitHub头像失败: {str(e)}")
+                    # 如果设置头像失败，将使用默认头像
+                    
                 user.save()
                 print(f"创建新用户: {username}, 名称: {name}, 邮箱: {email}")
 

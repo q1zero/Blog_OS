@@ -21,7 +21,7 @@ class User(AbstractUser):
     """
     # 自定义字段
     bio = models.TextField(_('个人简介'), blank=True,null=True)
-    avatar = models.ImageField(_('头像'), upload_to='avatars/', blank=True, null=True)
+    avatar = models.ImageField(_('头像'), upload_to='avatars/', blank=True, null=True, default='avatars/test.jpg')
 
     # 如果需要更复杂的角色管理，可以添加自定义角色字段
     # 例如：is_editor, is_vip等
