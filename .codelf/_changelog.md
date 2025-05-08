@@ -789,3 +789,31 @@
      - utils.py                        // refact 修改邮件发送为异步处理
    - pyproject.toml                    // refact 添加celery和redis依赖
    ```
+
+## 2025-05-08 10:40
+
+### 20. 添加社交账号认证依赖
+
+**Change Type**: fix, enhancement
+
+> **Purpose**: 修复社交账号登录功能，添加必要的依赖项
+> **Detailed Description**:
+>
+> 1. 在pyproject.toml中添加django-allauth和requests依赖
+>    * django-allauth>=65.7.0：提供社交账号认证功能
+>    * requests>=2.32.3：HTTP请求库，支持OAuth认证流程
+> 2. 应用数据库迁移，创建社交认证相关的数据库表
+>    * 创建django_site表，配置站点信息
+>    * 创建socialaccount相关表，支持社交账号存储
+>    * 创建account相关表，支持用户账号关联
+> 3. 解决ModuleNotFoundError错误，使GitHub登录功能正常工作
+> **Reason for Change**: 修复缺少依赖导致的启动错误，确保社交登录功能正常运行
+> **Impact Scope**: 影响用户认证模块和项目依赖配置
+> **API Changes**: 无
+> **Configuration Changes**: pyproject.toml添加新依赖
+> **Performance Impact**: 无明显性能影响
+
+   ```text
+   root
+   - pyproject.toml         // update 添加django-allauth和requests依赖
+   ```

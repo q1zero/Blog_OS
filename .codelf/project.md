@@ -18,6 +18,8 @@
 * markdown>=3.8：Markdown 渲染
 * drf-yasg>=1.21.7：Swagger API文档生成
 * django-debug-toolbar>=5.2.0：调试和性能分析工具
+* django-allauth>=65.7.0：第三方社交账号认证
+* requests>=2.32.3：HTTP请求库，支持OAuth认证流程
 
 ## 开发环境
 
