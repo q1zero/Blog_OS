@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",  # 必须添加此应用
     # 自定义应用
     "apps.users",
-    "apps.articles",
+    "apps.articles.apps.ArticlesConfig",
     "apps.comments",
     "utils.logs",  # 访问日志应用
     "utils.api",  # API应用
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "markdown",
     "drf_yasg",  # Swagger文档
     "debug_toolbar",  # Django Debug Toolbar
+    "django_elasticsearch_dsl",  # Elasticsearch DSL
     # django-allauth
     "allauth",
     "allauth.account",
@@ -120,6 +121,10 @@ DATABASES = {
     }
 }
 
+# Elasticsearch 配置
+ELASTICSEARCH_DSL = {
+    "default": {"hosts": "http://localhost:9200"},
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -180,21 +185,21 @@ SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     # Django默认的认证后端
-    'django.contrib.auth.backends.ModelBackend',
+    "django.contrib.auth.backends.ModelBackend",
     # django-allauth的认证后端
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 # 社交账号设置
 SOCIALACCOUNT_PROVIDERS = {
-    'github': {
-        'APP': {
-            'client_id': 'Ov23liDnrwEMQqWLTWJs',
-            'secret': '85da38312e31fedfa2ae0dcf6ce105bdc206beed',
-            'key': ''
+    "github": {
+        "APP": {
+            "client_id": "Ov23liDnrwEMQqWLTWJs",
+            "secret": "85da38312e31fedfa2ae0dcf6ce105bdc206beed",
+            "key": "",
         },
-        'SCOPE': ['user:email'],
-        'VERIFIED_EMAIL': True,
+        "SCOPE": ["user:email"],
+        "VERIFIED_EMAIL": True,
     }
 }
 
@@ -202,8 +207,8 @@ SOCIALACCOUNT_PROVIDERS = {
 SOCIALACCOUNT_EMAIL_REQUIRED = False
 
 # 允许用户使用多个社交账号关联到同一个本地账号
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_ADAPTER = "allauth.socialaccount.adapter.DefaultSocialAccountAdapter"
 
 # 自动关联新用户
 SOCIALACCOUNT_AUTO_SIGNUP = True
@@ -215,10 +220,10 @@ SOCIALACCOUNT_STORE_TOKENS = True
 
 # 额外的allauth设置
 # 新的配置格式
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_EMAIL_VERIFICATION = "optional"
 
 # 媒体文件配置
 MEDIA_URL = "/media/"
@@ -278,10 +283,10 @@ SIMPLE_JWT = {
 
 # 邮件配置
 # 开发环境使用控制台后端 - 启用此选项用于开发测试
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # 生产环境使用SMTP后端
-#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "mail.tjise.edu.cn"
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True  # 注意：端口465通常使用SSL而非TLS
