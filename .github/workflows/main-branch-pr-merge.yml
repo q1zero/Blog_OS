@@ -91,14 +91,13 @@ jobs:
         id: test
         continue-on-error: true
         run: |
-          cd blog
-          python manage.py check
+          uv run python blog/manage.py check
           EXIT_CODE=$?
           if [ $EXIT_CODE -ne 0 ]; then
-            echo "Django项目检查失败 (manage.py check)!"
+            echo "Django项目检查失败 (lint-and-test job: blog/manage.py check)!"
             exit $EXIT_CODE
           fi
-          echo "Django项目检查通过 (manage.py check)."
+          echo "Django项目检查通过 (lint-and-test job: blog/manage.py check)."
 
   basic-integration:
     name: 基本集成测试
@@ -160,24 +159,23 @@ jobs:
       
       - name: 检查Django项目
         run: |
-          cd blog
-          python manage.py check
+          uv run python blog/manage.py check
           EXIT_CODE=$?
           if [ $EXIT_CODE -ne 0 ]; then
-            echo "Django项目检查失败 (manage.py check)!"
+            echo "Django项目检查失败 (basic-integration job: blog/manage.py check)!"
             exit $EXIT_CODE
           fi
-          echo "Django项目检查通过 (manage.py check)."
+          echo "Django项目检查通过 (basic-integration job: blog/manage.py check)."
       
       # - name: 尝试运行数据库迁移
       #   continue-on-error: true
       
       - name: 验证Django项目能启动
         run: |
-          cd blog
-          echo "尝试在后台启动Django服务器..."
+          echo "尝试在后台启动Django服务器 (from project root)..."
           # 在后台启动服务器，并将输出重定向到日志文件以便调试
-          uv run python manage.py runserver > django_server.log 2>&1 &
+          # Log file will now be in blog/django_server.log relative to project root.
+          uv run python blog/manage.py runserver > blog/django_server.log 2>&1 &
           SERVER_PID=$!
           echo "Django服务器进程PID: $SERVER_PID"
           
@@ -186,8 +184,8 @@ jobs:
 
           echo "检查服务器是否仍在运行..."
           if ! ps -p $SERVER_PID > /dev/null; then
-            echo "Django服务器未能成功启动或已意外终止。查看django_server.log获取详情。"
-            cat django_server.log
+            echo "Django服务器未能成功启动或已意外终止。查看blog/django_server.log获取详情。"
+            cat blog/django_server.log
             exit 1
           fi
 
@@ -215,8 +213,8 @@ jobs:
           wait $SERVER_PID || echo "Django服务器已停止。"
 
           if [ "$SUCCESS" = false ]; then
-            echo "Django服务器已启动，但curl请求在多次重试后仍失败。查看django_server.log获取详情。"
-            cat django_server.log
+            echo "Django服务器已启动，但curl请求在多次重试后仍失败。查看blog/django_server.log获取详情。"
+            cat blog/django_server.log
             exit 1
           fi
           echo "Django服务器成功启动并响应curl请求。"
