@@ -52,27 +52,32 @@ jobs:
         with:
           python-version: '3.12'
       
-      - name: 安装依赖
+      - name: 安装uv并设置环境
         run: |
-          pip install --upgrade pip
-          
-          # 使用pip直接安装依赖
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          uv --version
+
+      - name: 安装依赖 (uv)
+        run: |
+          # 安装项目依赖和代码检查工具
           if [ -f "pyproject.toml" ]; then
-            echo "使用pyproject.toml安装依赖"
-            pip install -e .
-          elif [ -f "requirements.txt" ]; then
-            echo "使用requirements.txt安装依赖"
-            pip install -r requirements.txt
+            echo "使用pyproject.toml (uv sync) 安装项目依赖"
+            uv sync
+            echo "使用uv pip install 安装代码检查工具"
+            uv pip install black isort flake8
+          elif [ -f "requirements.txt" ]; then # 作为备选，尽管项目有pyproject.toml
+            echo "使用requirements.txt (uv pip install -r) 安装依赖"
+            uv pip install -r requirements.txt
+            echo "使用uv pip install 安装代码检查工具"
+            uv pip install black isort flake8
           else
-            echo "未找到依赖文件，直接安装Django和其他必要依赖"
-            pip install django djangorestframework djangorestframework-simplejwt markdown
+            echo "未找到依赖文件，使用uv pip install直接安装Django和其他必要依赖及工具"
+            uv pip install django djangorestframework djangorestframework-simplejwt markdown black isort flake8
           fi
           
-          # 安装代码检查工具
-          pip install black isort flake8
-          
           # 确认Django已安装
-          python -c "import django; print(f'Django版本: {django.__version__}')"
+          uv run python -c "import django; print(f'Django版本: {django.__version__}')"
       
       - name: 运行代码风格检查
         id: lint
@@ -86,8 +91,13 @@ jobs:
         id: test
         continue-on-error: true
         run: |
-          cd blog
-          python manage.py check || echo "项目检查失败，但继续执行下一步"
+          uv run python blog/manage.py check
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "Django项目检查失败 (lint-and-test job: blog/manage.py check)!"
+            exit $EXIT_CODE
+          fi
+          echo "Django项目检查通过 (lint-and-test job: blog/manage.py check)."
 
   basic-integration:
     name: 基本集成测试
@@ -113,27 +123,32 @@ jobs:
         with:
           python-version: '3.12'
       
-      - name: 安装依赖
+      - name: 安装uv并设置环境
         run: |
-          pip install --upgrade pip
-          
-          # 使用pip直接安装依赖
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          uv --version
+      
+      - name: 安装依赖 (uv)
+        run: |
+          # 安装项目依赖和MySQL客户端
           if [ -f "pyproject.toml" ]; then
-            echo "使用pyproject.toml安装依赖"
-            pip install -e .
+            echo "使用pyproject.toml (uv sync) 安装项目依赖"
+            uv sync
+            echo "使用uv pip install 安装mysqlclient"
+            uv pip install mysqlclient # mysqlclient 通常需要单独处理或包含在项目可选依赖中
           elif [ -f "requirements.txt" ]; then
-            echo "使用requirements.txt安装依赖"
-            pip install -r requirements.txt
+            echo "使用requirements.txt (uv pip install -r) 安装依赖"
+            uv pip install -r requirements.txt
+            echo "使用uv pip install 安装mysqlclient"
+            uv pip install mysqlclient
           else
-            echo "未找到依赖文件，直接安装Django和其他必要依赖"
-            pip install django djangorestframework djangorestframework-simplejwt markdown mysqlclient
+            echo "未找到依赖文件，使用uv pip install直接安装Django和其他必要依赖"
+            uv pip install django djangorestframework djangorestframework-simplejwt markdown mysqlclient
           fi
           
-          # 安装MySQL客户端
-          pip install mysqlclient
-          
           # 确认Django已安装
-          python -c "import django; print(f'Django版本: {django.__version__}')"
+          uv run python -c "import django; print(f'Django版本: {django.__version__}')"
       
       - name: 配置测试环境
         run: |
@@ -144,19 +159,108 @@ jobs:
       
       - name: 检查Django项目
         run: |
-          cd blog
-          python manage.py check || echo "项目检查失败，但继续执行下一步"
+          uv run python blog/manage.py check
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "Django项目检查失败 (basic-integration job: blog/manage.py check)!"
+            exit $EXIT_CODE
+          fi
+          echo "Django项目检查通过 (basic-integration job: blog/manage.py check)."
       
-      # - name: 尝试运行数据库迁移
-      #   continue-on-error: true
-      #   run: |
-      #     cd blog
-      #     python manage.py migrate --fake-initial || python manage.py migrate --run-syncdb || echo "数据库迁移跳过，继续执行下一步"
-      
+      - name: 运行数据库迁移 (basic-integration)
+        run: |
+          echo "尝试运行数据库迁移..."
+          # 确保从项目根目录运行
+          uv run python blog/manage.py migrate
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "!!! 数据库迁移失败 (exit code $EXIT_CODE)!"
+            # 如果迁移失败，通常服务器也无法正常启动，这里可以选择退出或记录后继续
+            exit $EXIT_CODE # 让CI步骤失败
+          fi
+          echo "数据库迁移成功完成。"
+
       - name: 验证Django项目能启动
         run: |
-          cd blog
-          timeout 10s python manage.py runserver > /dev/null 2>&1 || echo "服务已启动并停止"
+          echo "尝试在后台启动Django服务器 (from project root, binding to 0.0.0.0:8000)..."
+          # 在后台启动服务器，并将输出重定向到日志文件以便调试
+          # 暂时移除 --skip-checks，因为我们期望迁移已经成功
+          uv run python blog/manage.py runserver 0.0.0.0:8000 > blog/django_server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Django服务器进程PID: $SERVER_PID"
+          
+          echo "等待20秒让服务器启动..."
+          sleep 20
+
+          echo "检查Django服务器日志 (blog/django_server.log)..."
+          if [ ! -f blog/django_server.log ]; then
+            echo "!!!错误: Django服务器日志文件 blog/django_server.log 未找到!"
+            # 即使日志文件不存在，也尝试列出目录内容帮助调试
+            ls -la blog/
+            exit 1
+          elif [ ! -s blog/django_server.log ]; then
+            echo "!!!警告: Django服务器日志文件 blog/django_server.log 为空!"
+            # 这通常意味着服务器可能立即失败了
+          else
+            echo "Django服务器日志 (blog/django_server.log) 内容前几行:"
+            head -n 30 blog/django_server.log
+            # 检查是否有成功启动的迹象 (可以根据实际日志调整此grep)
+            if grep -q -E "Starting development server at|Watching for file changes with" blog/django_server.log; then
+              echo "日志中似乎包含服务器成功启动的迹象。"
+            else
+              echo "!!!警告: 日志中未找到明确的服务器成功启动信息。可能启动失败。"
+            fi
+          fi
+
+          echo "检查服务器进程是否仍在运行 (PID: $SERVER_PID)..."
+          if ! ps -p $SERVER_PID > /dev/null; then
+            echo "---------------------------------------------------------------------"
+            echo "!!! Django服务器进程 (PID: $SERVER_PID) 已不存在。它可能启动失败或已崩溃。查看上面的日志输出。 !!!"
+            echo "---------------------------------------------------------------------"
+            echo "完整 Django服务器日志 (blog/django_server.log) 内容:"
+            cat blog/django_server.log
+            exit 1
+          fi
+
+          echo "检查系统上正在监听的端口 (尤其是8000)..."
+          # ss 通常在ubuntu runner中可用。-t TCP, -u UDP, -l listening, -n numeric, -p processes
+          ss -tulnp | grep LISTEN || echo "ss 命令执行失败或没有监听到任何端口"
+          ss -tulnp | grep ':8000' || echo "未发现监听在端口8000的服务。"
+
+          echo "使用curl -v 验证服务器响应 (http://127.0.0.1:8000)..."
+          RETRY_COUNT=0
+          MAX_RETRIES=5 # 保持5次重试
+          SUCCESS=false
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Curl尝试 $((RETRY_COUNT+1)) of $MAX_RETRIES..."
+            # 使用 -v 获取详细输出, -sS 保持简洁但显示错误, --fail 使其在HTTP错误时失败
+            curl -v -sS --fail http://127.0.0.1:8000/
+            CURL_EXIT_CODE=$?
+            if [ $CURL_EXIT_CODE -eq 0 ]; then
+              echo "Curl请求成功，服务器响应正常。"
+              SUCCESS=true
+              break
+            else
+              echo "Curl请求失败 (退出码: $CURL_EXIT_CODE)，将在3秒后重试..."
+              RETRY_COUNT=$((RETRY_COUNT+1))
+              sleep 3 # 每次重试间隔3秒
+            fi
+          done
+
+          echo "停止Django服务器 (PID: $SERVER_PID)..."
+          kill $SERVER_PID
+          # 等待服务器进程完全停止
+          wait $SERVER_PID || echo "Django服务器已停止 (或之前已停止)。"
+
+          if [ "$SUCCESS" = false ]; then
+            echo "---------------------------------------------------------------------"
+            echo "!!! Django服务器已启动，但curl请求在多次重试后仍失败。查看下面的日志: !!!"
+            echo "---------------------------------------------------------------------"
+            echo "完整 Django服务器日志 (blog/django_server.log) 内容:"
+            cat blog/django_server.log
+            exit 1
+          fi
+          echo "Django服务器成功启动并响应curl请求。"
   
   final-report:
     name: 测试结果报告
