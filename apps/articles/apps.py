@@ -7,4 +7,3 @@ class ArticlesConfig(AppConfig):
 
     def ready(self):
         from . import signals  # 使用相对导入
-        from . import search_indexes  # 使用相对导入

@@ -1,0 +1,37 @@
+# .replit
+# 有关更多信息，请参阅 https://docs.replit.com/programming-ide/configuring-repl
+[nix]
+# 指定 Nix 通道。建议使用最新的稳定通道。
+channel = "stable-23_11"
+
+# Replit 执行以启动您的应用程序的命令。
+# $PORT 是 Replit 自动设置的环境变量。
+# 'uv run' 确保命令在 uv 管理的虚拟环境中执行。
+run = "uv run python blog/manage.py runserver 0.0.0.0:$PORT"
+
+# Repl 的主要编程语言。
+language = "python3"
+
+# Replit 在 Repl 加载时默认应打开的文件。
+# 这主要是为了 IDE 的便利。
+entrypoint = "blog/manage.py"
+
+# 钩子是在 Repl 生命周期不同阶段运行的命令。
+[hooks]
+# 此命令在 Nix 环境设置完成后，
+# 或当 Replit 检测到可能影响依赖项的更改（例如 pyproject.toml 更改）时运行一次。
+# 它使用 uv 安装 pyproject.toml 中指定的依赖项。
+onBoot = "uv pip sync"
+
+# 可选：在每次执行 'run' 命令之前运行的命令。
+# 对于数据库迁移之类的任务很有用，如果需要经常运行的话。
+# 对于初始设置，迁移通常在 shell 中手动运行或作为部署脚本的一部分。
+# beforeRun = ["uv run python blog/manage.py migrate"]
+
+# 环境变量。
+# 强烈建议对敏感数据（如 SECRET_KEY、数据库凭据等）使用 Replit Secrets。
+# 您的 Django settings.py 文件应配置为从 os.environ 读取这些变量。
+# 示例（不要在此处放置实际的机密）：
+# [env]
+# DJANGO_SETTINGS_MODULE = "blog.config.settings"
+# PYTHONUNBUFFERED = "1" # 通常对于立即查看日志很有用

@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     "markdown",
     "drf_yasg",  # Swagger文档
     "debug_toolbar",  # Django Debug Toolbar
-    "django_elasticsearch_dsl",  # Elasticsearch DSL
     # django-allauth
     "allauth",
     "allauth.account",
@@ -127,10 +126,7 @@ import pymysql
 
 pymysql.install_as_MySQLdb()
 
-# Elasticsearch 配置
-ELASTICSEARCH_DSL = {
-    "default": {"hosts": "http://localhost:9200"},
-}
+# 删除 Elasticsearch 配置
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
