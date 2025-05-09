@@ -1,190 +1,196 @@
 # Blog_OS
 
-## 如何创建 GitHub 个人访问令牌（Personal Access Token）
+一个功能丰富的博客系统，基于 Django和 Docker构建。
 
-1. 登录 GitHub 账户  
-   - 打开 [GitHub](https://github.com) 并登录您的账户  
-   - 点击右上角头像，选择 **Settings**
+**Demo 链接:** [https://blog-os-235.replit.app](https://blog-os-235.replit.app)
+**GitHub 仓库:** [https://github.com/q1zero/Blog_OS](https://github.com/q1zero/Blog_OS)
 
-2. 进入开发者设置  
-   - 滚动到页面底部，点击 **Developer settings**
+## 主要功能
 
-3. 创建个人访问令牌  
-   1. 在左侧菜单中选择 **Personal access tokens**  
-   2. 点击 **Tokens (classic)**  
-   3. 点击 **Generate new token**（生成新令牌）  
-   4. 如有安全验证提示，请完成验证
+*   **文章管理:** 支持 Markdown语法的文章发布、编辑、删除功能。
+*   **评论系统:** 用户可以对文章进行评论。
+*   **用户认证:** 包括用户注册、登录、密码修改、头像更换等。
+*   **GitHub 登录:** 支持通过 GitHub账号快捷登录。
+*   **搜索功能:** 可以搜索文章。
+*   **点赞与收藏:** 用户可以点赞和收藏喜欢的文章。
+*   **API 接口:** 提供 RESTful API接口，使用 JWT进行认证，并提供 Swagger API文档。
+*   **异步任务:** 使用 Celery和 Redis处理异步任务（例如邮件发送等）。
+*   **访问日志:** 记录用户访问日志。
+*   **后台管理:** 集成 Django Admin进行数据管理。
+*   **调试工具:** 集成 Django Debug Toolbar方便开发调试。
 
-4. 配置令牌信息  
-   - **Note**：输入描述性名称，例如 `Blog_OS PR合并自动化`  
-   - **过期时间**（Expiration）：选择合适的期限（建议 90 天）  
-   - **Scopes**：勾选以下权限：  
-     - `repo`（完整仓库访问权限）  
-     - `workflow`（工作流权限）  
-     - `read:org`（组织读取权限，仅在组织仓库时需勾选）  
-   - 点击 **Generate token**  
-   > **重要提示**：生成后请立即复制令牌，页面关闭后无法再次查看
+## 技术栈
 
----
+*   **后端:** Python 3.12+, Django 4.2.x
+*   **API:** Django REST framework, djangorestframework-simplejwt (JWT 认证), drf-yasg (Swagger UI)
+*   **数据库:** MySQL
+*   **异步任务:** Celery, Redis
+*   **用户认证:** django-allauth (包括 GitHub社交登录)
+*   **内容处理:** Markdown, Pillow (图片处理)
+*   **容器化:** Docker, Docker Compose
+*   **其他:** python-decouple (环境变量管理), requests
 
-## 将令牌添加到仓库密钥
+## 安装与启动
 
-1. 进入 Blog_OS 仓库设置  
-2. 在左侧菜单点击 **Secrets and variables** → **Actions**  
-3. 点击 **New repository secret**  
-4. 填写密钥信息：  
-   - **Name**：`CUSTOM_GITHUB_TOKEN`  
-   - **Value**：粘贴刚才复制的个人访问令牌  
-5. 点击 **Add secret**
+### 1. 本地开发环境
 
-完成上述步骤后，GitHub Actions 工作流即可使用此自定义令牌进行 PR 合并操作，确保拥有足够权限。
+**前提:**
+*   Python >= 3.12
+*   MySQL 数据库
+*   Redis 服务
+*   uv (或 pip) 用于安装依赖
 
----
+**步骤:**
 
-## 数据库查询性能优化文档
+1.  **克隆仓库:**
+    ```bash
+    git clone https://github.com/q1zero/Blog_OS.git
+    cd Blog_OS
+    ```
 
-为了提高应用程序的性能，我们针对博客平台的数据库查询进行了一系列优化。以下详细介绍了实施的优化措施：
+2.  **创建并激活虚拟环境 (推荐):**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # Linux/macOS
+    # venv\Scripts\activate  # Windows
+    ```
 
-### 1. 使用 select_related 和 prefetch_related 减少查询次数
+3.  **安装依赖:**
+    项目使用 [pyproject.toml](pyproject.toml:0) 管理依赖。您可以使用 uv或 pip安装。
+    ```bash
+    uv pip install -r requirements.txt # (如果存在 requirements.txt, 通常由 poetry export 生成)
+    # 或者根据 pyproject.toml 手动安装，或使用 poetry install (如果项目使用 Poetry 管理)
+    # 鉴于 pyproject.toml 中列出了依赖，通常会有一个 requirements.txt 文件或使用如 Poetry/PDM 的工具。
+    # 假设有一个 requirements.txt:
+    # pip install -r requirements.txt
+    ```
+    *注意：根据 [pyproject.toml](pyproject.toml:0) 的结构，最佳实践是使用像 Poetry或 PDM这样的工具。如果没有，可以手动从 [pyproject.toml](pyproject.toml:0) 中提取依赖列表并安装。为简化，假设有 requirements.txt或者直接安装列出的主要依赖。*
 
-为了减少数据库查询的次数，我们在以下视图中使用了 `select_related` 和 `prefetch_related`：
+4.  **配置环境变量:**
+    创建 .env文件在项目根目录，并设置数据库连接等信息（参考 [blog/config/settings.py](blog/config/settings.py:102) 中的 DATABASES配置和 python-decouple的使用）。
+    例如：
+    ```env
+    SECRET_KEY=your_secret_key
+    DEBUG=True
+    DB_NAME=blog_os
+    DB_USER=your_db_user
+    DB_PASSWORD=your_db_password
+    DB_HOST=localhost
+    DB_PORT=3306
+    CELERY_BROKER_URL=redis://localhost:6379/0
+    CELERY_RESULT_BACKEND=redis://localhost:6379/0
+    # GitHub OAuth
+    GITHUB_CLIENT_ID=your_github_client_id
+    GITHUB_CLIENT_SECRET=your_github_client_secret
+    # Email settings (if needed for local testing)
+    EMAIL_HOST_USER=your_email
+    EMAIL_HOST_PASSWORD=your_email_password
+    ```
 
-#### 1.1 文章列表视图
+5.  **执行数据库迁移:**
+    ```bash
+    python blog/manage.py migrate
+    ```
 
-```python
-# 使用select_related加载author和category，减少数据库查询
-articles = Article.objects.select_related('author', 'category').prefetch_related('tags').filter(
-    status="published", 
-    visibility="public"
-)
+6.  **创建超级用户 (可选):**
+    ```bash
+    python blog/manage.py createsuperuser
+    ```
+
+7.  **启动开发服务器:**
+    ```bash
+    python blog/manage.py runserver
+    ```
+    访问 http://127.0.0.1:8000/
+
+8.  **启动 Celery Worker (在另一个终端):**
+    ```bash
+    celery -A blog.config.celery_init worker -l info
+    ```
+
+9.  **启动 Celery Beat (在另一个终端, 如果有定时任务):**
+    ```bash
+    celery -A blog.config.celery_init beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    ```
+
+### 2. 使用 Docker启动
+
+**前提:**
+*   Docker
+*   Docker Compose
+
+**步骤:**
+
+1.  **克隆仓库:**
+    ```bash
+    git clone https://github.com/q1zero/Blog_OS.git
+    cd Blog_OS
+    ```
+
+2.  **配置环境变量:**
+    复制 .env.example (如果提供) 为 .env文件，或者直接创建 .env文件，并填写必要的环境变量。这些变量将被 [docker-compose.yml](docker-compose.yml:0) 使用。
+    例如：
+    ```env
+    MYSQL_DATABASE=blog_os_docker
+    MYSQL_USER=blog_user_docker
+    MYSQL_PASSWORD=your_strong_password
+    MYSQL_ROOT_PASSWORD=your_strong_root_password
+    # SECRET_KEY, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET 等也应在此配置
+    ```
+
+3.  **构建并启动容器:**
+    ```bash
+    docker-compose up --build
+    ```
+    这将会启动 web服务、数据库 (db)、Redis以及 Celery的 worker和 beat服务。
+
+4.  **执行数据库迁移 (在容器启动后, 可能需要在另一个终端执行):**
+    ```bash
+    docker-compose exec web python blog/manage.py migrate
+    ```
+
+5.  **创建超级用户 (可选):**
+    ```bash
+    docker-compose exec web python blog/manage.py createsuperuser
+    ```
+    访问 http://localhost:8000/
+
+## 部署
+
+*   **Replit:** 该项目已经配置为可以在 Replit上部署和运行。详情请参考项目中的 [replit.nix](replit.nix:0) 和 .replit文件，以及 [docs/REPLIT_DEPLOYMENT.md](docs/REPLIT_DEPLOYMENT.md:0) 文档。
+*   **其他平台:** 关于通用的部署指南，请参考 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md:0) 文档。通常涉及配置 Web服务器 (如 Nginx或 Apache)、WSGI服务器 (如 Gunicorn或 uWSGI)、静态文件和媒体文件的处理，以及生产环境下的数据库和 Celery配置。
+
+## 项目结构
+
+```
+Blog_OS/
+├── blog/                     # Django 项目主目录
+│   ├── apps/                 # 应用模块
+│   │   ├── articles/         # 文章相关功能
+│   │   ├── comments/         # 评论相关功能
+│   │   └── users/            # 用户相关功能
+│   ├── config/               # 项目配置 (settings.py, urls.py, wsgi.py, asgi.py, celery_init.py)
+│   ├── logs/                 # 日志文件存放目录
+│   ├── media/                # 用户上传的媒体文件
+│   ├── static/               # 项目的静态文件 (CSS, JavaScript, 图片)
+│   ├── templates/            # Django 模板文件
+│   ├── utils/                # 公用程序和工具 (API 实现, Celery 任务, 日志记录等)
+│   └── manage.py             # Django 命令行工具
+├── docs/                     # 项目文档
+├── .github/                  # GitHub Actions 等配置
+├── .gitignore                # Git 忽略文件配置
+├── docker-compose.yml        # Docker Compose 配置文件
+├── Dockerfile                # Docker 镜像构建文件
+├── pyproject.toml            # Python 项目元数据和依赖 (PEP 621)
+├── README.md                 # 本文件
+├── replit.nix                # Replit 环境配置 (Nix)
+└── .replit                   # Replit 配置文件
 ```
 
-#### 1.2 文章详情视图
+## 贡献指南
 
-```python
-# 使用select_related预加载author和category，使用prefetch_related预加载tags和评论
-article = get_object_or_404(
-    Article.objects.select_related('author', 'category')
-    .prefetch_related(
-        'tags',
-        'comments__author',  # 预加载评论及评论作者
-        'comments__replies__author',  # 预加载评论回复及回复作者
-    ),
-    slug=article_slug
-)
-```
+(暂未提供，欢迎提出 Issue或 Pull Request)
 
-#### 1.3 评论审核视图
+## 许可证
 
-```python
-# 使用select_related预加载评论相关的作者和文章数据
-pending_comments = Comment.objects.select_related('author', 'article').filter(is_approved=False).order_by("-created_at")
-```
-
-### 2. 添加数据库索引
-
-为了优化数据库查询性能，我们为模型的关键字段添加了数据库索引：
-
-#### 2.1 文章模型索引
-
-```python
-# 为文章模型添加索引
-author = models.ForeignKey(..., db_index=True)
-category = models.ForeignKey(..., db_index=True)
-status = models.CharField(..., db_index=True)
-visibility = models.CharField(..., db_index=True)
-created_at = models.DateTimeField(..., db_index=True)
-published_at = models.DateTimeField(..., db_index=True)
-views_count = models.PositiveIntegerField(..., db_index=True)
-
-# 添加复合索引
-class Meta:
-    indexes = [
-        models.Index(fields=["author", "status"], name="author_status_idx"),
-        models.Index(fields=["status", "visibility"], name="status_visibility_idx"),
-    ]
-```
-
-#### 2.2 评论模型索引
-
-```python
-# 为评论模型添加索引
-author = models.ForeignKey(..., db_index=True)
-article = models.ForeignKey(..., db_index=True)
-parent = models.ForeignKey(..., db_index=True)
-created_at = models.DateTimeField(..., db_index=True)
-is_approved = models.BooleanField(..., db_index=True)
-
-# 添加复合索引
-class Meta:
-    indexes = [
-        models.Index(fields=["article", "is_approved"], name="article_approved_idx"),
-    ]
-```
-
-### 3. 实施查询缓存
-
-为了减少频繁访问的数据库查询，我们使用了Django的缓存框架：
-
-#### 3.1 缓存配置
-
-```python
-# 缓存配置
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
-}
-
-# 缓存过期时间设置
-CACHE_TTL = 60 * 15  # 15分钟
-```
-
-#### 3.2 视图缓存
-
-```python
-# 为首页和文章列表视图添加缓存装饰器
-@cache_page(CACHE_TTL)
-def article_list(request, category_slug=None, tag_id=None):
-    # ...
-
-@cache_page(CACHE_TTL)
-def home(request):
-    # ...
-```
-
-### 4. 其他优化建议
-
-1. **限制查询结果数量**：对于不需要全部数据的查询，我们限制了返回结果的数量
-
-   ```python
-   approved_comments = Comment.objects.select_related('author', 'article').filter(is_approved=True).order_by("-created_at")[:50]
-   ```
-
-2. **使用分页**：所有列表视图都使用了分页，每页显示固定数量的结果
-
-   ```python
-   paginator = Paginator(articles, 10)  # 每页显示10篇文章
-   ```
-
-3. **使用会话控制重复计数**：避免文章浏览量的重复计数
-
-   ```python
-   session_key = f"viewed_article_{article.pk}"
-   if not request.session.get(session_key, False):
-       article.increase_views()
-       request.session[session_key] = True
-       request.session.set_expiry(1800)  # 30分钟内不重复计数
-   ```
-
-### 5. 优化效果
-
-这些优化措施可以显著提高博客平台的性能表现：
-
-1. **减少数据库查询次数**：使用 `select_related` 和 `prefetch_related` 可以减少多达数十次的数据库查询
-2. **提高查询速度**：为经常查询的字段添加索引，可以使查询速度提高数倍
-3. **减轻数据库负载**：通过缓存热门页面，可以减少数据库的负载
-4. **改善用户体验**：页面加载更快，响应更迅速
-
-以上优化措施在项目规模扩大、访问量增加时尤为重要。
+(项目当前未指定明确的开源许可证。)

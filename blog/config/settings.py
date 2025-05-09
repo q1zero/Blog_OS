@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-mn1d=6%+9-$yyn4ju+0!nhs0k10%hf4mvqjz!%w$ymzpv&2fqq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["blog-os-235.replit.app", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -381,3 +381,8 @@ DEBUG_TOOLBAR_CONFIG = {
     # 允许在测试中使用Debug Toolbar
     "IS_RUNNING_TESTS": False,
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://blog-os-235.replit.app",
+    # 如果您有其他信任的域，也可以加在这里，例如 'http://localhost:8000', 'http://127.0.0.1:8000'
+]
