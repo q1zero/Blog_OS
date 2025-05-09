@@ -1,3 +1,239 @@
+## 2025-05-09 20:29
+
+### 26. 解决GitHub OAuth登录问题
+
+**Change Type**: fix, docs
+
+> **Purpose**: 解决GitHub OAuth登录时的redirect_uri不匹配错误问题
+> **Detailed Description**:
+>
+> 1. 问题分析和解决方案
+>    * 确定了"redirect_uri is not associated with this application"错误的根本原因
+>    * 提供了在GitHub开发者设置中创建和配置OAuth应用的详细步骤
+>    * 说明了如何正确配置回调URL以匹配代码中使用的URL
+>    * 强调了协议(HTTP/HTTPS)、域名和路径必须完全匹配的重要性
+> 2. 文档改进
+>    * 添加了GitHub OAuth应用注册和配置的详细说明
+>    * 解释了开发者设置与普通用户使用的区别
+>    * 说明了开发者只需一次性配置，所有用户共享此配置
+> **Reason for Change**: 解决用户在使用GitHub登录时遇到的"redirect_uri is not associated with this application"错误，改善用户体验
+> **Impact Scope**: 不影响代码，主要是配置和文档说明
+> **API Changes**: 无
+> **Configuration Changes**: 需要在GitHub开发者设置中正确配置OAuth应用的回调URL
+> **Performance Impact**: 无性能影响
+
+   ```text
+   root
+   - .codelf                 // update 更新项目文档记录解决GitHub OAuth问题
+     - _changelog.md         // update 添加解决GitHub OAuth登录问题的变更记录
+   ```
+
+## 2025-05-09 20:22
+
+### 25. 强制使用HTTPS协议进行GitHub登录
+
+**Change Type**: improvement, security
+
+> **Purpose**: 解决GitHub登录协议不一致的问题，通过强制使用HTTPS协议提高安全性
+> **Detailed Description**:
+>
+> 1. 优化GitHub登录URL生成逻辑
+>    * 修改github_login函数，强制使用HTTPS协议构建回调URL
+>    * 即使用户通过HTTP访问应用，也自动切换使用HTTPS版本的回调URL
+>    * 保留对本地环境（127.0.0.1/localhost）的HTTP协议支持
+> 2. 调整Replit域名获取优先级
+>    * 修改get_replit_domain函数，调整域名顺序，优先使用HTTPS版本
+>    * 保持HTTP版本作为备用方案，确保向后兼容
+>    * 更明确地标识HTTPS版本为优先选项
+> 3. 替代解决方案
+>    * 相比之前同时支持HTTP和HTTPS的方案，新方案优先使用HTTPS提高安全性
+>    * 简化了协议选择逻辑，降低出错可能
+>    * 仍然保留本地开发环境的灵活性
+> **Reason for Change**: 提高安全性，解决GitHub OAuth认证过程中由于协议不一致导致的认证失败问题
+> **Impact Scope**: 仅影响GitHub登录功能
+> **API Changes**: 无
+> **Configuration Changes**: 无，设置文件中保留了HTTP和HTTPS两个版本的回调URL用于兼容性
+> **Performance Impact**: 无性能影响，但提高了安全性和稳定性
+
+   ```text
+   root
+   - blog/utils/github_auth
+     - github_auth.py        // update 强制使用HTTPS协议构建回调URL
+     - setup_callback.py     // update 调整域名获取优先级，优先HTTPS
+   ```
+
+## 2025-05-09 20:14
+
+### 24. 修复GitHub登录协议匹配问题
+
+**Change Type**: bugfix
+
+> **Purpose**: 解决GitHub登录时由于协议（HTTP/HTTPS）不匹配导致的redirect_uri错误
+> **Detailed Description**:
+>
+> 1. 针对协议匹配问题优化回调URL配置
+>    * 在settings.py中同时添加HTTP和HTTPS两个版本的Replit域名回调URL
+>    * 修改get_replit_domain函数返回HTTP和HTTPS两个版本的域名
+>    * 确保当前请求协议与配置的回调URL协议完全匹配
+> 2. 更新github_login函数逻辑
+>    * 根据当前请求协议（HTTP/HTTPS）选择匹配的回调URL
+>    * 在日志中明确显示使用的是哪个协议版本的回调URL
+>    * 提高系统对不同协议环境的适应性
+> 3. 更新GitHub认证文档
+>    * 添加关于HTTP/HTTPS协议匹配的详细说明
+>    * 提供更全面的故障排除指南
+>    * 强调检查授权URL中redirect_uri参数与配置URL的完全匹配（包括协议）
+> **Reason for Change**: 解决用户在使用GitHub登录时遇到的"redirect_uri is not associated with this application"错误，特别是由于HTTP/HTTPS协议不匹配导致的问题
+> **Impact Scope**: 仅影响GitHub登录功能，特别是在不同协议环境下的使用
+> **API Changes**: 无
+> **Configuration Changes**: 更新了settings.py中的GITHUB_CALLBACK_URLS配置，添加了HTTP版本的Replit域名
+> **Performance Impact**: 无性能影响
+
+   ```text
+   root
+   - blog/config
+     - settings.py           // update 添加HTTP版本的Replit域名回调URL配置
+   - blog/utils/github_auth
+     - github_auth.py        // update 优化协议匹配逻辑，确保使用与当前请求匹配的协议
+     - setup_callback.py     // update 修改域名获取函数返回HTTP和HTTPS两个版本
+     - README.md             // update 更新文档添加协议匹配的详细说明
+   ```
+
+## 2025-05-09 20:09
+
+### 23. 修复GitHub登录在Replit环境下的回调URL问题
+
+**Change Type**: bugfix
+
+> **Purpose**: 解决在Replit环境下GitHub登录遇到redirect_uri不匹配错误的问题
+> **Detailed Description**:
+>
+> 1. 针对Replit环境优化GitHub回调URL配置
+>    * 在settings.py中添加特定的Replit域名 `https://blog-os-235.replit.app/accounts/github/callback`
+>    * 修改setup_callback.py脚本，硬编码支持特定的Replit域名
+>    * 确保callback URL配置与GitHub OAuth应用设置完全匹配
+> 2. 更新GitHub认证文档
+>    * 添加Replit环境下的特别说明
+>    * 提供详细的redirect_uri不匹配错误排查步骤
+>    * 强调回调URL必须完全匹配，包括协议、域名和路径
+> **Reason for Change**: 解决用户在Replit环境下使用GitHub登录时遇到的"redirect_uri is not associated with this application"错误
+> **Impact Scope**: 仅影响GitHub登录功能，特别是在Replit环境下的使用
+> **API Changes**: 无
+> **Configuration Changes**: 更新了settings.py中的GITHUB_CALLBACK_URLS配置，添加了特定Replit域名
+> **Performance Impact**: 无性能影响
+
+   ```text
+   root
+   - blog/config
+     - settings.py           // update 添加特定Replit域名的回调URL配置
+   - blog/utils/github_auth
+     - setup_callback.py     // update 硬编码支持特定Replit域名
+     - README.md             // update 更新文档添加Replit环境特别说明
+   ```
+
+## 2025-05-09 19:59
+
+### 22. 改进GitHub登录回调URL配置系统
+
+**Change Type**: enhancement
+
+> **Purpose**: 改进GitHub OAuth登录系统，解决多环境下回调URL不匹配问题
+> **Detailed Description**:
+>
+> 1. 实现智能回调URL处理系统
+>    * 在settings.py中添加GITHUB_CALLBACK_URLS和GITHUB_CALLBACK_URL配置
+>    * 修改github_login函数，优先使用当前域名在已配置列表中的回调URL
+>    * 增加回调URL检测和选择逻辑，支持本地开发、Replit等多种环境
+> 2. 添加自动检测回调URL的辅助工具
+>    * 创建setup_callback.py脚本，自动检测当前环境可能的域名
+>    * 支持获取Replit域名、本地IP和localhost回调URL
+>    * 自动更新settings.py中的配置
+> 3. 更新GitHub认证文档
+>    * 添加自动配置回调URL的使用说明
+>    * 提供详细的故障排除指南，特别针对"redirect_uri不匹配"错误
+>    * 更新GitHub OAuth应用设置说明
+> **Reason for Change**: 解决用户在不同环境（特别是Replit云环境）使用GitHub登录时遇到的回调URL不匹配问题
+> **Impact Scope**: 影响GitHub登录功能，增强多环境支持
+> **API Changes**: 无
+> **Configuration Changes**: 在settings.py中添加GITHUB_CALLBACK_URLS和GITHUB_CALLBACK_URL配置
+> **Performance Impact**: 无性能影响，但显著提升用户体验和系统稳定性
+
+   ```text
+   root
+   - blog/config
+     - settings.py             // update 添加回调URL配置
+   - blog/utils/github_auth
+     - github_auth.py          // update 实现智能回调URL处理
+     - setup_callback.py       // new 创建自动检测回调URL的辅助工具
+     - README.md               // update 更新文档添加配置指南
+   ```
+
+## 2025-05-09 19:46
+
+### 21. 修复GitHub登录后域名跳转问题
+
+**Change Type**: bugfix
+
+> **Purpose**: 解决GitHub登录完成后，跳转回127.0.0.1:8000而不是原域名的问题
+> **Detailed Description**:
+>
+> 1. 修改GitHub登录视图，使用动态的域名作为redirect_uri
+>    * 使用请求的scheme和host构建完整的回调URL
+>    * 去除硬编码的127.0.0.1:8000域名
+>    * 添加调试信息输出回调URL和完整授权URL
+> 2. 更新GitHub认证功能文档
+>    * 添加关于GitHub OAuth应用支持多回调URL的说明
+>    * 指导开发者配置多个域名的回调URL
+>    * 更新登录流程说明，明确当前访问域名将用于构建回调URL
+> **Reason for Change**: 修复当用户从非127.0.0.1:8000域名访问时，GitHub登录后跳转到错误域名的问题
+> **Impact Scope**: 仅影响GitHub登录功能，不影响其他功能
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无性能影响
+
+   ```text
+   root
+   - blog/utils/github_auth
+     - github_auth.py        // refact 使用动态域名构建回调URL
+     - README.md             // update 更新多域名回调URL配置说明
+   ```
+
+## 2025-05-09 19:35
+
+### 20. 修复部署健康检查问题
+
+**Change Type**: bugfix
+
+> **Purpose**: 解决Replit部署健康检查失败的问题，同时保持网站正常功能
+> **Detailed Description**:
+>
+> 1. 创建专用的健康检查中间件，用于处理来自部署环境的健康检查请求
+>    * 通过User-Agent检测Replit的健康检查请求
+>    * 对健康检查请求返回成功状态码和响应
+>    * 不影响普通用户访问首页的体验
+> 2. 增强健康检查视图，支持不同类型的响应
+>    * 对API请求返回JSON格式响应
+>    * 对特定路径返回简单的HTML响应
+>    * 使用重定向处理其他情况
+> 3. 优化URL配置
+>    * 保留了健康检查专用路径
+>    * 恢复首页原来的视图功能
+>    * 添加了.well-known路径支持标准健康检查
+> **Reason for Change**: 修复部署失败问题，确保在保持网站功能完整的同时通过健康检查
+> **Impact Scope**: 影响健康检查视图、URL配置和中间件
+> **API Changes**: 无
+> **Configuration Changes**: 在settings.py中添加了健康检查中间件
+> **Performance Impact**: 轻微，只有在处理健康检查请求时有额外开销
+
+   ```text
+   root
+   - blog/config
+     - middleware.py        // add 添加健康检查中间件
+     - views.py             // refact 优化健康检查视图
+     - urls.py              // update 恢复首页视图，保留健康检查路径
+     - settings.py          // update 添加健康检查中间件配置
+   ```
+
 ## 2025-05-06 16:50
 
 ### 19. 数据库查询性能优化

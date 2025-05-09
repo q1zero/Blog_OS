@@ -144,6 +144,13 @@ root
    * 使用Django原生会话认证
    * 集成JWT令牌认证支持API访问
    * 登录状态管理和记录
+   * GitHub第三方登录，支持使用GitHub账号直接登录
+     * 自动创建新用户并关联GitHub信息
+     * 自动下载并设置GitHub头像
+     * 跨域名支持，使用当前域名动态构建回调URL
+     * 支持多种环境部署，包括本地开发和Replit云托管
+     * 智能回调URL处理系统，避免redirect_uri不匹配错误
+     * 协议自适应，同时支持HTTP和HTTPS，确保协议匹配
 
 3. 用户个人资料管理
    * 个人资料展示页面
@@ -172,6 +179,8 @@ root
 * `/users/profile/change-avatar/` - 更换头像
 * `/users/profile/change-password/` - 修改密码
 * `/users/profile/change-password/done/` - 密码修改完成
+* `/github/login/` - GitHub登录
+* `/accounts/github/callback` - GitHub登录回调
 
 ### 文章管理模块
 
