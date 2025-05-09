@@ -7,7 +7,7 @@ channel = "stable-23_11"
 # Replit 执行以启动您的应用程序的命令。
 # $PORT 是 Replit 自动设置的环境变量。
 # 'uv run' 确保命令在 uv 管理的虚拟环境中执行。
-run = "uv run python blog/manage.py runserver 0.0.0.0:$PORT"
+# run = "uv run python blog/manage.py runserver 0.0.0.0:$PORT" # 您可以在 Replit 的 "Configuration" -> "Run" 面板中设置此命令
 
 # Repl 的主要编程语言。
 language = "python3"
