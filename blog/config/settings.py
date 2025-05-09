@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-mn1d=6%+9-$yyn4ju+0!nhs0k10%hf4mvqjz!%w$ymzpv&2fqq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["blog-os-235.replit.app", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -289,14 +289,14 @@ SIMPLE_JWT = {
 
 # 生产环境使用SMTP后端
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "mail.tjise.edu.cn"
+EMAIL_HOST = ""
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True  # 注意：端口465通常使用SSL而非TLS
-EMAIL_HOST_USER = "2450310705@stu.tjise.edu.cn"
-EMAIL_HOST_PASSWORD = "ZbpRDBa1d7Kzjpqy"
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
 
 # 默认发件人邮箱
-DEFAULT_FROM_EMAIL = "2450310705@stu.tjise.edu.cn"
+DEFAULT_FROM_EMAIL = ""
 
 # 站点URL，用于构建完整的URL
 SITE_URL = "http://127.0.0.1:8000"

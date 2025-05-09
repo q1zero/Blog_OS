@@ -854,3 +854,75 @@
      - signals.py            // add 用于信号处理的文件
    - pyproject.toml          // update 添加 django-elasticsearch-dsl 依赖
    ```
+
+## 2025-05-09 17:56
+
+### 20. 修复Celery配置导入问题
+
+**Change Type**: bugfix
+
+> **Purpose**: 修复Django无法导入celery_app的问题，解决WSGI应用启动错误
+> **Detailed Description**:
+>
+> 1. 在`config/celery_init.py`文件中添加`celery_app`变量，指向现有的`app`实例
+> 2. 更新`__all__`列表，包含`celery_app`变量
+> 3. 这解决了`wsgi.py`中无法从`config.celery_init`导入`celery_app`的问题
+> **Reason for Change**: 修复由于变量命名不一致导致的导入错误，确保应用能够正常启动
+> **Impact Scope**: 影响Celery初始化和WSGI应用启动
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无
+
+   ```text
+   root
+   - blog/config
+     - celery_init.py        // update 添加celery_app变量并更新__all__列表
+   ```
+
+## 2025-05-09 18:05
+
+### 21. 修复邮件验证功能中的变量未定义错误
+
+**Change Type**: bugfix
+
+> **Purpose**: 修复用户注册时邮件验证功能的错误，解决`verify_url`变量未定义的问题
+> **Detailed Description**:
+>
+> 1. 删除`blog/apps/users/utils.py`文件中的重复邮件发送代码
+> 2. 修复了导致`NameError: name 'verify_url' is not defined`错误的问题
+> 3. 确保只通过Celery异步任务处理邮件发送，避免重复发送
+> **Reason for Change**: 修复用户注册流程，确保验证邮件能够正确发送
+> **Impact Scope**: 影响用户注册功能和邮件验证流程
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无明显性能影响，减少了重复代码执行
+
+   ```text
+   root
+   - blog/apps/users
+     - utils.py               // fix 删除重复的邮件发送代码并修复变量未定义错误
+   ```
+
+## 2025-05-09 18:10
+
+### 22. 修复邮箱验证成功后无法登录的问题
+
+**Change Type**: bugfix
+
+> **Purpose**: 修复邮箱验证成功后登录失败的问题，解决多认证后端导致的`ValueError`错误
+> **Detailed Description**:
+>
+> 1. 修复`verify_email`视图中的登录逻辑，为`login`函数添加`backend`参数
+> 2. 显式指定使用`django.contrib.auth.backends.ModelBackend`认证后端
+> 3. 解决了由于配置了多个认证后端（Django默认、django-allauth和JWT）导致的错误
+> **Reason for Change**: 修复用户注册并验证邮箱后无法登录的问题，提高用户体验
+> **Impact Scope**: 影响用户注册后的邮箱验证流程
+> **API Changes**: 无
+> **Configuration Changes**: 无
+> **Performance Impact**: 无性能影响
+
+   ```text
+   root
+   - blog/apps/users
+     - views.py               // fix 为login函数添加backend参数，指定使用ModelBackend
+   ```

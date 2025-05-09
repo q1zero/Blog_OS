@@ -16,6 +16,7 @@
     pkgs.freetype
     pkgs.pkg-config
     pkgs.redis # 添加 Redis 包
+    pkgs.mariadb
     # 如果 pymysql 需要编译且没有提供合适的 wheel，可能需要添加 MySQL 客户端开发库，
     # 例如 pkgs.mysql.client (或类似名称，具体取决于 Nixpkgs 中的包名)
     # 但通常 uv/pip 会处理好这个。
