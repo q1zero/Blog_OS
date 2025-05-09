@@ -341,6 +341,7 @@ root
      * 数据清理：定期清理过期令牌和临时数据
      * 浏览量处理：优化文章浏览量统计
    * 实现定时任务，自动执行定期维护和统计操作
+   * **重要**: 配置文件`config/celery_init.py`中的`celery_app`变量必须存在，该变量被`wsgi.py`导入
 
 3. **Elasticsearch 搜索功能**
    * 集成 Elasticsearch 实现全文搜索能力

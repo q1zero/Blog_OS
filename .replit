@@ -1,13 +1,14 @@
+modules = ["python-3.12", "web", "nix"]
+run = "mysqld_safe --datadir=/tmp/mysql_data --user=$(whoami) --log-error=/tmp/mysql.log & redis-server --daemonize yes && cd blog && celery -A config.celery_init worker -l info --detach && uv run python manage.py runserver 0.0.0.0:8000"
 # .replit
 # 有关更多信息，请参阅 https://docs.replit.com/programming-ide/configuring-repl
 [nix]
-# 指定 Nix 通道。建议使用最新的稳定通道。
-channel = "stable-23_11"
+channel = "stable-24_05"
 
 # Replit 执行以启动您的应用程序的命令。
 # $PORT 是 Replit 自动设置的环境变量。
 # 'uv run' 确保命令在 uv 管理的虚拟环境中执行。
-run = "redis-server --daemonize yes && celery -A blog.config.celery_init worker -l info --detach && uv run python blog/manage.py runserver 0.0.0.0:8000"
+# run = "redis-server --daemonize yes && celery -A blog.config.celery_init worker -l info --detach && uv run python blog/manage.py runserver 0.0.0.0:8000"
 
 # Repl 的主要编程语言。
 language = "python3"
@@ -15,6 +16,7 @@ language = "python3"
 # Replit 在 Repl 加载时默认应打开的文件。
 # 这主要是为了 IDE 的便利。
 entrypoint = "blog/manage.py"
+packages = ["freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "tcl", "tk", "zlib"]
 
 # 钩子是在 Repl 生命周期不同阶段运行的命令。
 [hooks]
@@ -22,6 +24,13 @@ entrypoint = "blog/manage.py"
 # 或当 Replit 检测到可能影响依赖项的更改（例如 pyproject.toml 更改）时运行一次。
 # 它使用 uv 安装 pyproject.toml 中指定的依赖项。
 onBoot = "uv pip sync"
+
+[deployment]
+run = ["sh", "-c", "redis-server --daemonize yes && celery -A blog.config.celery_init worker -l info --detach && uv run python blog/manage.py runserver 0.0.0.0:8000"]
+
+[[ports]]
+localPort = 6379
+externalPort = 80
 
 # 可选：在每次执行 'run' 命令之前运行的命令。
 # 对于数据库迁移之类的任务很有用，如果需要经常运行的话。
