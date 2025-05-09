@@ -141,19 +141,19 @@ jobs:
         run: |
           # 安装项目依赖和MySQL客户端
           if [ -f "pyproject.toml" ]; then
-            echo "使用pyproject.toml (uv sync) 安装项目依赖"
-            uv sync
-            echo "使用uv pip install 安装mysqlclient"
-            uv pip install mysqlclient # mysqlclient 通常需要单独处理或包含在项目可选依赖中
-          elif [ -f "requirements.txt" ]; then
-            echo "使用requirements.txt (uv pip install -r) 安装依赖"
-            uv pip install -r requirements.txt
-            echo "使用uv pip install 安装mysqlclient"
-            uv pip install mysqlclient
-          else
-            echo "未找到依赖文件，使用uv pip install直接安装Django和其他必要依赖"
-            uv pip install django djangorestframework djangorestframework-simplejwt markdown mysqlclient
-          fi
+          echo "使用pyproject.toml (uv sync) 安装项目依赖"
+          uv sync
+          echo "使用uv pip install 安装 cryptography (pymysql需要)"
+          uv pip install cryptography pymysql # 确保pymysql和其依赖cryptography被安装
+        elif [ -f "requirements.txt" ]; then
+          echo "使用requirements.txt (uv pip install -r) 安装依赖"
+          uv pip install -r requirements.txt
+          echo "使用uv pip install 安装 cryptography (pymysql需要)"
+          uv pip install cryptography pymysql
+        else
+          echo "未找到依赖文件，使用uv pip install直接安装Django和其他必要依赖"
+          uv pip install django djangorestframework djangorestframework-simplejwt markdown pymysql cryptography
+        fi
           
           # 确认Django已安装
           uv run python -c "import django; print(f'Django版本: {django.__version__}')"
