@@ -103,7 +103,6 @@ jobs:
     name: 基本集成测试
     needs: [lint-and-test]
     runs-on: ubuntu-latest
-    
     services:
       mysql:
         image: mysql:8.0
@@ -113,7 +112,16 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-    
+    env:
+      DB_NAME: test_blog
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      # 如果您的 settings.py 也配置为从环境变量读取 SECRET_KEY 和 DEBUG，
+      # 可以在这里也进行设置，例如：
+      # SECRET_KEY: "your-ci-secret-key"
+      # DEBUG: "True"
     steps:
       - name: 检出代码
         uses: actions/checkout@v3
@@ -153,9 +161,10 @@ jobs:
       - name: 配置测试环境
         run: |
           cd blog
-          echo "SECRET_KEY=test-secret-key-for-ci" > .env
-          echo "DEBUG=True" >> .env
-          echo "DATABASE_URL=mysql://root:rootpassword@localhost:3306/test_blog" >> .env
+          echo "SECRET_KEY=test-secret-key-for-ci" > .env # 保留此行以防项目其他部分可能读取.env
+          echo "DEBUG=True" >> .env # 保留此行以防项目其他部分可能读取.env
+          # DATABASE_URL 的设置已不再需要，因为 Django settings.py 现在直接从 DB_* 环境变量读取
+          echo "Database connection environment variables (DB_HOST, DB_PORT, etc.) are now set at the job level."
       
       - name: 检查Django项目
         run: |
