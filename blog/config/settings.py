@@ -98,28 +98,33 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# MySQL配置（暂时注释）
+# MySQL配置
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "blog_os",
+        "USER": "root",
+        "PASSWORD": "",  # 使用空密码登录
+        "HOST": "localhost",  # 本地MySQL服务器
+        "PORT": "3306",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
+    }
+}
+
+# SQLite配置（已注释）
 # DATABASES = {
 #     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "NAME": "blog_os",
-#         "USER": "ggtmy31755",
-#         "PASSWORD": "123456789",  # 使用空密码登录
-#         "HOST": "db4free.net",
-#         "PORT": "3306",
-#         "OPTIONS": {
-#             "charset": "utf8mb4",
-#         },
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
 
-# SQLite配置
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# 配置pymysql作为MySQL数据库驱动
+import pymysql
+
+pymysql.install_as_MySQLdb()
 
 # Elasticsearch 配置
 ELASTICSEARCH_DSL = {
