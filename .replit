@@ -1,5 +1,5 @@
 modules = ["python-3.12", "web", "nix"]
-run = "mysqld_safe --datadir=/tmp/mysql_data --user=$(whoami) --log-error=/tmp/mysql.log & redis-server --daemonize yes && cd blog && celery -A config.celery_init worker -l info --detach && uv run python manage.py runserver 0.0.0.0:8000"
+run = "redis-server --daemonize yes && cd blog && celery -A config.celery_init worker -l info --detach && uv run python manage.py runserver 0.0.0.0:8000"
 # .replit
 # 有关更多信息，请参阅 https://docs.replit.com/programming-ide/configuring-repl
 [nix]
@@ -26,10 +26,14 @@ packages = ["freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp
 onBoot = "uv pip sync"
 
 [deployment]
-run = ["sh", "-c", "redis-server --daemonize yes && celery -A blog.config.celery_init worker -l info --detach && uv run python blog/manage.py runserver 0.0.0.0:8000"]
+# 确保部署命令与普通run命令保持一致，特别是目录结构
+# 使用$PORT环境变量确保在部署环境中绑定到正确的端口
+run = "redis-server --daemonize yes && cd blog && celery -A config.celery_init worker -l info --detach && uv run python manage.py runserver 0.0.0.0:$PORT"
+# 部署前执行数据库迁移，确保数据库结构是最新的
+beforeRun = ["cd blog && uv run python manage.py migrate"]
 
 [[ports]]
-localPort = 6379
+localPort = 8000
 externalPort = 80
 
 # 可选：在每次执行 'run' 命令之前运行的命令。
@@ -43,4 +47,4 @@ externalPort = 80
 # 示例（不要在此处放置实际的机密）：
 # [env]
 # DJANGO_SETTINGS_MODULE = "blog.config.settings"
-# PYTHONUNBUFFERED = "1" # 通常对于立即查看日志很有用
+PYTHONUNBUFFERED = "1" # 通常对于立即查看日志很有用

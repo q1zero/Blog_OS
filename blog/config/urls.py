@@ -20,11 +20,17 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from apps.articles import views as article_views
+from .views import health_check
 
 urlpatterns = [
+    # 健康检查路由，用于部署环境监测
+    path("health/", health_check, name="health_check"),
+    # 也添加根路径的健康检查，但是使用额外的URL模式
+    path(".well-known/health/", health_check, name="root_health_check"),
+    # 恢复首页原来的视图
+    path("", article_views.home, name="home"),
     path("admin/", admin.site.urls),
     path("articles/", include("apps.articles.urls", namespace="articles")),
-    path("", article_views.home, name="home"),
     path("users/", include("apps.users.urls", namespace="users")),
     path("comments/", include("apps.comments.urls", namespace="comments")),
     path("logs/", include("utils.logs.urls", namespace="logs")),

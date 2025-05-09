@@ -71,6 +71,7 @@ MIDDLEWARE = [
     # django-allauth中间件
     "allauth.account.middleware.AccountMiddleware",
     # 自定义中间件
+    "config.middleware.HealthCheckMiddleware",  # 健康检查中间件，放在前面优先处理
     "utils.logs.middleware.AccessLogMiddleware",  # 访问日志中间件
 ]
 
@@ -386,3 +387,15 @@ CSRF_TRUSTED_ORIGINS = [
     "https://blog-os-235.replit.app",
     # 如果您有其他信任的域，也可以加在这里，例如 'http://localhost:8000', 'http://127.0.0.1:8000'
 ]
+
+# GitHub OAuth配置
+# 配置所有可能的回调URL
+GITHUB_CALLBACK_URLS = [
+    "http://127.0.0.1:8000/accounts/github/callback",
+    "http://localhost:8000/accounts/github/callback",
+    "https://blog-os-235.replit.app/accounts/github/callback",  # HTTPS版本的Replit域名
+    "http://blog-os-235.replit.app/accounts/github/callback",  # HTTP版本的Replit域名（与当前授权URL匹配）
+]
+
+# 使用第一个URL作为默认回调URL
+GITHUB_CALLBACK_URL = GITHUB_CALLBACK_URLS[0]
